@@ -1,8 +1,14 @@
-from typing import Union
-
-from fastapi import FastAPI
+from typing import List, Annotated
+from fastapi import FastAPI, HTTPException, Depends
+from pydantic import BaseModel
 
 app = FastAPI()
+
+class stations(BaseModel):
+    name:str
+    line:str
+    station_number:int
+
 
 
 @app.get("/")
