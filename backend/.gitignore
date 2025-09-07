@@ -1,0 +1,21 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+
+# Virtual environment
+.venv/
+venv/
+env/
+
+# IDE files
+.vscode/
+.idea/
+
+# Local files
+.DS_Store
+.env
+.env.local
+
+# FastAPI-specific files
+/docs
+/openapi.json
