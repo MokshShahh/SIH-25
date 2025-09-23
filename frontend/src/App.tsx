@@ -1,28 +1,21 @@
-import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import './App.css';
 
-import './App.css'
-
-import Header from './components/pages/Header'
+import Header from './components/pages/Header';
 import Dashboard from './components/pages/Dashboard';
-
-function AppContent(){
-  const loaction = useLocation();
-  return (
-    <>
-      <Routes>
-        <Route path='/' element={<Header />}/> 
-        <Route path="/dashboard" element={<Dashboard />} />
-      </Routes>
-    </>
-  )  
-}
-
+import SignIn from "./components/pages/SignIn";
+import SignUp from "./components/pages/SignUp";
 function App() {
   return (
     <Router>
-      <AppContent />
+      <Routes>
+        <Route path='/' element={<Header />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/signin" element={<SignIn />} />
+        <Route path="/signup" element={<SignUp />} />
+      </Routes>
     </Router>
-  )
+  );
 }
 
-export default App
+export default App;
