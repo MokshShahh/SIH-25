@@ -1,5 +1,4 @@
-"fastapi[standard]"
-sqlalchemy 
-psycopg2-binary
+fastapi
+uvicorn
+neo4j
 python-dotenv
-os
