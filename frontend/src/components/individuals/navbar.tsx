@@ -1,4 +1,6 @@
 import AnimatedText from "./HoverAnimation";
+import { NavLink } from "react-router-dom";
+
 function Navbar() {
   return (
     <div className="flex justify-between items-center h-14 px-6 shadow-lg ">
@@ -10,9 +12,9 @@ function Navbar() {
       {/* Nav Links */}
       <div>
         <ul className="flex gap-8 font-medium">
-          <li className="cursor-pointer  transition-colors"><AnimatedText>Home</AnimatedText> </li>
-          <li className="cursor-pointer  transition-colors"><AnimatedText>About Us</AnimatedText> </li>
-          <li className="cursor-pointer  transition-colors"><AnimatedText>Dashboard</AnimatedText> </li>
+          <li className="cursor-pointer  transition-colors"><NavLink to="/" className={(e)=> {return e.isActive? "bg-green-500 text-white p-1.5 rounded-2xl": undefined}} ><AnimatedText>Home</AnimatedText> </NavLink> </li>
+          <li className="cursor-pointer  transition-colors"><NavLink to="/AboutUs" className={(e)=> {return e.isActive? "bg-green-500 text-white p-1.5 rounded-2xl": undefined}} ><AnimatedText>About Us</AnimatedText> </NavLink></li>
+          <li className="cursor-pointer  transition-colors"><NavLink to="/dashboard" className={(e)=> {return e.isActive? "bg-green-500 text-white p-1.5 rounded-2xl": undefined}} ><AnimatedText>Dashboard</AnimatedText> </NavLink></li>
         </ul>
       </div>
 

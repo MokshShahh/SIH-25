@@ -1,17 +1,27 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
+import { BrowserRouter as Router, Routes, Route, useLocation } from 'react-router-dom';
+
 import './App.css'
 
 import Header from './components/pages/Header'
+import Dashboard from './components/pages/Dashboard';
 
-function App() {
-  const [count, setCount] = useState(0)
-
+function AppContent(){
+  const loaction = useLocation();
   return (
     <>
-      <Header />
+      <Routes>
+        <Route path='/' element={<Header />}/> 
+        <Route path="/dashboard" element={<Dashboard />} />
+      </Routes>
     </>
+  )  
+}
+
+function App() {
+  return (
+    <Router>
+      <AppContent />
+    </Router>
   )
 }
 
