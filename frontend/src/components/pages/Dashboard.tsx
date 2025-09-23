@@ -1,18 +1,6 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ZoomIn, ZoomOut, Home, Play, Pause, RotateCcw } from 'lucide-react';
-
-// Sample data 
-const sampleData = [
-  {'p': [{'city': 'Mumbai', 'name': 'Mumbai Central', 'type': 'Interstate'}, 'CONNECTS_TO', {'city': 'Surat', 'name': 'Surat', 'type': 'Interstate'}]},
-  {'p': [{'city': 'Mumbai', 'name': 'Mumbai Central', 'type': 'Interstate'}, 'CONNECTS_TO', {'city': 'Mumbai', 'name': 'Dadar', 'type': 'Terminal'}]},
-  {'p': [{'city': 'Delhi', 'name': 'New Delhi', 'type': 'Interstate'}, 'CONNECTS_TO', {'city': 'Bhopal', 'name': 'Bhopal Junction', 'type': 'Interstate'}]},
-  {'p': [{'city': 'Pune', 'name': 'Pune Junction', 'type': 'Interstate'}, 'CONNECTS_TO', {'city': 'Mumbai', 'name': 'Mumbai Central', 'type': 'Interstate'}]},
-  {'p': [{'city': 'Surat', 'name': 'Surat', 'type': 'Interstate'}, 'CONNECTS_TO', {'city': 'Delhi', 'name': 'New Delhi', 'type': 'Interstate'}]},
-  {'p': [{'city': 'Bhopal', 'name': 'Bhopal Junction', 'type': 'Interstate'}, 'CONNECTS_TO', {'city': 'Pune', 'name': 'Pune Junction', 'type': 'Interstate'}]},
-  {'p': [{'city': 'Mumbai', 'name': 'Dadar', 'type': 'Terminal'}, 'CONNECTS_TO', {'city': 'Mumbai', 'name': 'Kalyan Junction', 'type': 'Local'}]},
-  {'p': [{'city': 'Mumbai', 'name': 'Thane', 'type': 'Local'}, 'CONNECTS_TO', {'city': 'Mumbai', 'name': 'Mumbai Central', 'type': 'Interstate'}]},
-  {'p': [{'city': 'Mumbai', 'name': 'Kalyan Junction', 'type': 'Local'}, 'CONNECTS_TO', {'city': 'Mumbai', 'name': 'Thane', 'type': 'Local'}]}
-];
+import axios from 'axios';
 
 function Dashboard() {
   const svgRef = useRef(null);
@@ -24,8 +12,9 @@ function Dashboard() {
   const [connections, setConnections] = useState([]);
   const [trains, setTrains] = useState([]);
   const [isAnimating, setIsAnimating] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [fetchedData, setFetchedData] = useState([]);
 
-//   Processing the data- (stations and trains)
   const processData = useCallback((data) => {
     const stationMap = new Map();
     const connectionList = [];
@@ -34,8 +23,7 @@ function Dashboard() {
       if (item.p && item.p.length === 3) {
         const [origin, relation, destination] = item.p;
         
-        if (relation === 'CONNECTS_TO') {
-          // Add stations to map
+        if (relation === 'TRACK') {
           const originKey = `${origin.city}-${origin.name}`;
           const destKey = `${destination.city}-${destination.name}`;
           
@@ -57,7 +45,6 @@ function Dashboard() {
             });
           }
           
-          // Add connection
           connectionList.push({
             from: originKey,
             to: destKey,
@@ -70,7 +57,6 @@ function Dashboard() {
     setStations(stationMap);
     setConnections(connectionList);
     
-    // Create trains for animation
     const trainList = connectionList.map((conn, index) => ({
       id: `train-${index}`,
       connectionId: conn.id,
@@ -82,10 +68,24 @@ function Dashboard() {
   }, []);
 
   useEffect(() => {
-    processData(sampleData);
-  }, [processData]);
+    const backend_url = "http://127.0.0.1:8000"
+    axios.get(`${backend_url}/stations/map`)
+      .then(response => {
+        setFetchedData(response.data.stations);
+        setIsLoading(false);
+      })
+      .catch(error => {
+        console.error('Error fetching data:', error);
+        setIsLoading(false);
+      });
+  }, []);
 
-  // Animation loop
+  useEffect(() => {
+    if (fetchedData.length > 0) {
+      processData(fetchedData);
+    }
+  }, [fetchedData, processData]);
+
   useEffect(() => {
     if (!isAnimating) return;
     
@@ -192,14 +192,23 @@ function Dashboard() {
     return { x, y };
   };
 
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center h-screen w-full bg-gray-50 text-gray-700">
+        <svg className="animate-spin h-8 w-8 text-gray-600 mr-3" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" className="opacity-25"></circle>
+          <path fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" className="opacity-75"></path>
+        </svg>
+        <p>Loading network data...</p>
+      </div>
+    );
+  }
+
   return (
     <div className="h-screen w-full bg-gray-50 flex flex-col">
-      {/* Navbar */}
       <div className="bg-white text-gray-800 px-6 py-4 shadow-lg border-b">
         <h1 className="text-2xl font-bold text-gray-700">Train Network Dashboard</h1>
       </div>
-      
-      {/* Controls */}
       <div className="bg-white px-6 py-2 flex items-center justify-between border-b border-gray-200 shadow-sm">
         <div className="flex items-center space-x-4">
           <button
@@ -228,7 +237,6 @@ function Dashboard() {
         </div>
       </div>
       
-      {/* Legend */}
       <div className="bg-white px-6 py-2 flex items-center space-x-6 text-sm text-gray-700 border-b border-gray-200 shadow-sm">
         <div className="flex items-center space-x-2">
           <div className="w-3 h-3 rounded-full bg-blue-600"></div>
@@ -248,7 +256,6 @@ function Dashboard() {
         </div>
       </div>
       
-      {/* Main Canvas */}
       <div 
         ref={containerRef}
         className="flex-1 overflow-hidden cursor-move bg-gray-50"
@@ -278,10 +285,8 @@ function Dashboard() {
             </filter>
           </defs>
           
-          {/* Dotted Background */}
           <rect x={viewBox.x} y={viewBox.y} width={viewBox.width} height={viewBox.height} fill="url(#dots)" />
           
-          {/* Connections */}
           {connections.map(connection => {
             const fromStation = stations.get(connection.from);
             const toStation = stations.get(connection.to);
@@ -299,7 +304,6 @@ function Dashboard() {
                   strokeWidth="2"
                   opacity="0.8"
                 />
-                {/* Direction arrow */}
                 <polygon
                   points={`${toStation.x - 8},${toStation.y - 4} ${toStation.x - 8},${toStation.y + 4} ${toStation.x - 2},${toStation.y}`}
                   fill="#9ca3af"
@@ -310,7 +314,6 @@ function Dashboard() {
             );
           })}
           
-          {/* Trains */}
           {isAnimating && trains.map(train => {
             const pos = getTrainPosition(train);
             return (
@@ -332,10 +335,8 @@ function Dashboard() {
             );
           })}
           
-          {/* Stations */}
           {Array.from(stations.values()).map(station => (
             <g key={station.id}>
-              {/* Station glow */}
               <circle
                 cx={station.x}
                 cy={station.y}
@@ -344,7 +345,6 @@ function Dashboard() {
                 opacity="0.3"
                 filter="url(#glow)"
               />
-              {/* Station circle */}
               <circle
                 cx={station.x}
                 cy={station.y}
@@ -354,7 +354,6 @@ function Dashboard() {
                 strokeWidth="2"
                 className="cursor-pointer hover:r-10 transition-all"
               />
-              {/* Station label */}
               <text
                 x={station.x}
                 y={station.y - 15}
@@ -378,7 +377,6 @@ function Dashboard() {
         </svg>
       </div>
       
-      {/* Status Bar */}
       <div className="bg-white px-6 py-2 text-xs text-gray-600 border-t border-gray-200 shadow-sm">
         Zoom: {(800 / viewBox.width * 100).toFixed(0)}% | 
         View: ({viewBox.x.toFixed(0)}, {viewBox.y.toFixed(0)}) | 
