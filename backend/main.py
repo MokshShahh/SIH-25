@@ -27,6 +27,7 @@ SIM_RUNNING = False
 TIME_FACTOR = 60 
 SIM_STEP_SEC = 0.2 
 
+#converts hh:mm:ss to total minutes as float
 def time_to_minutes(time_str: str) -> int:
     try:
         if ':' not in time_str:
@@ -115,6 +116,7 @@ def get_stations():
     """
     return run_cypher(query)
 
+#sends stations to frontend for map visualization
 @app.get("/stations/map")
 def get_map_data():
     query = """
@@ -275,178 +277,6 @@ def get_simulation_status():
         "connected_clients": len(WS_CONNECTIONS)
     }
 
-async def sim_loop():
-    sim_time = datetime.now()
-    while True:
-        try:
-            if not SIM_RUNNING:
-                await asyncio.sleep(SIM_STEP_SEC)
-                continue
-
-            sim_time += timedelta(seconds=SIM_STEP_SEC * TIME_FACTOR)
-            current_minutes = sim_time.hour * 60 + sim_time.minute + sim_time.second / 60
-
-            trains_query = """
-            MATCH (t:Train)-[r:ROUTE]->(s:Station)
-            WHERE r.seq IS NOT NULL
-            WITH t, r, s
-            ORDER BY t.id, toInteger(r.seq)
-            WITH t, collect({
-                station_code: s.code,
-                station_name: coalesce(s.name, "Unknown Station"),
-                arrival: r.arrival,
-                departure: r.departure,
-                seq: toInteger(r.seq),
-                distance: toInteger(coalesce(r.distance, 0))
-            }) AS route
-            WHERE size(route) > 0
-            RETURN t.id AS train_id, coalesce(t.name, "Unnamed Train") AS train_name, route
-            """
-            train_records = run_cypher(trains_query)
-            if not train_records:
-                await asyncio.sleep(SIM_STEP_SEC)
-                continue
-
-            for train in train_records:
-                try:
-                    route = train.get("route", [])
-                    tid = train.get("train_id")
-                    tname = train.get("train_name")
-
-                    status = "scheduled"
-                    progress = 0
-                    current_station = None
-                    next_station = None
-
-                    for i, stop in enumerate(route):
-                        arrival_time = stop.get("arrival")
-                        departure_time = stop.get("departure")
-                        if not arrival_time or not departure_time:
-                            continue
-
-                        arr_min = time_to_minutes(arrival_time)
-                        dep_min = time_to_minutes(departure_time)
-                        if arr_min < 0 or dep_min < 0:
-                            continue
-
-                        if current_minutes <= dep_min:
-                            current_station = stop.get("station_name", "Unknown Station")
-                            next_station = route[i+1].get("station_name") if i+1 < len(route) else None
-
-                            if next_station and i+1 < len(route):
-                                next_arrival_time = route[i+1].get("arrival")
-                                if next_arrival_time:
-                                    next_arrival = time_to_minutes(next_arrival_time)
-                                    travel_time = max(1, next_arrival - dep_min)
-                                    progress = (current_minutes - dep_min) / travel_time
-                                    progress = max(0, min(progress, 1))
-                                    status = "enroute"
-                            else:
-                                status = "at_station"
-                                progress = 1
-                            break
-
-                    await broadcast({
-                        "type": "status_update",
-                        "train_id": tid,
-                        "train_name": tname,
-                        "current_station": current_station,
-                        "next_station": next_station,
-                        "status": status,
-                        "progress": round(progress, 6),
-                        "sim_time": sim_time.strftime("%H:%M:%S")
-                    })
-
-                except Exception as e_train:
-                    print(f"[Train Processing Error] {train.get('train_id')}: {e_train}")
-
-        except Exception as e:
-            print(f"[Simulation Loop Error] {e}")
-
-        await asyncio.sleep(SIM_STEP_SEC)
-
-@app.get("/health")
-def health_check():
-    """Health check endpoint"""
-    try:
-        driver.verify_connectivity()
-        return {
-            "status": "healthy",
-            "database": "connected",
-            "simulation": "running" if SIM_RUNNING else "stopped",
-            "websocket_connections": len(WS_CONNECTIONS)
-        }
-    except Exception as e:
-        return {
-            "status": "unhealthy", 
-            "database": "disconnected",
-            "error": str(e)
-        }
-
-def minutes_to_hhmmss(minutes: float) -> str:
-    total_seconds = int(round(minutes * 60))
-    h = (total_seconds // 3600) % 24
-    m = (total_seconds % 3600) // 60
-    s = total_seconds % 60
-    return f"{h:02d}:{m:02d}:{s:02d}"
-
-def fetch_train_route(train_id: str):
-    query = """
-    MATCH (t:Train {id: $train_id})-[r:ROUTE]->(s:Station)
-    RETURN r.seq AS seq, r.arrival AS arrival, r.departure AS departure
-    ORDER BY r.seq
-    """
-    route = run_cypher(query, {"train_id": train_id})
-    if not route:
-        raise RuntimeError(f"No route found for train {train_id}")
-    return route
-
-def check_conflicts(proposed_schedule: dict) -> List[dict]:
-    conflicts = []
-    segment_times = {} 
-    for train_id, train_data in proposed_schedule.items():
-        stops = train_data["stops"]
-        for i in range(len(stops)-1):
-            from_stop = stops[i]
-            to_stop = stops[i+1]
-            start_min = time_to_minutes(from_stop["new_departure"])
-            end_min = time_to_minutes(to_stop["new_arrival"])
-            key = (from_stop["station_name"], to_stop["station_name"])
-            segment_times.setdefault(key, []).append((train_id, start_min, end_min))
-    
-    for seg, intervals in segment_times.items():
-        intervals.sort(key=lambda x: x[1])
-        for i in range(len(intervals)):
-            t1, s1, e1 = intervals[i]
-            for j in range(i+1, len(intervals)):
-                t2, s2, e2 = intervals[j]
-                if s2 < e1:
-                    conflicts.append({"train1": t1, "train2": t2, "segment": seg})
-    return conflicts
-
-def apply_train_departure_to_db(train_id: str, new_dep_minutes: float):
-    route = fetch_train_route(train_id)
-    orig_dep = next((time_to_minutes(stop["departure"]) for stop in route if stop.get("departure")), None)
-    if orig_dep is None:
-        raise RuntimeError(f"Origin departure not found for train {train_id}")
-    delta = new_dep_minutes - orig_dep
-
-    updates = []
-    for stop in route:
-        seq = stop["seq"]
-        arr_min = time_to_minutes(stop["arrival"]) if stop.get("arrival") else None
-        dep_min = time_to_minutes(stop["departure"]) if stop.get("departure") else None
-
-        new_arr = minutes_to_hhmmss(arr_min + delta) if arr_min is not None else None
-        new_dep = minutes_to_hhmmss(dep_min + delta) if dep_min is not None else None
-
-        update_q = """
-        MATCH (t:Train {id: $train_id})-[r:ROUTE {seq: $seq}]->(s:Station)
-        SET r.arrival = $new_arr, r.departure = $new_dep
-        """
-        run_cypher(update_q, {"train_id": train_id, "seq": seq, "new_arr": new_arr, "new_dep": new_dep})
-        updates.append({"seq": seq, "new_arrival": new_arr, "new_departure": new_dep})
-    return updates
 
 @app.post("/optimize/apply")
 async def apply_optimized_schedule(schedule: dict):
@@ -559,6 +389,247 @@ def propose_optimized_schedule(schedule: dict):
         "conflicts": conflicts,
         "precedence_decisions": precedence_decisions
     }
+#optimizes schedule for all trains arriving at a dadar around 9:30pm
+@app.post("/optimize/station")
+def optimize_full_station_schedule():
+    station_code = "DR"
+
+    cypher_query = """
+    MATCH (t:Train)-[r:ROUTE]->(s:Station)
+    WHERE s.code = "DR"
+    WITH t, r, s
+    ORDER BY t.id, toInteger(r.seq)
+    RETURN t.id AS train_id,
+           t.name AS train_name,
+           t.priority AS priority,
+           collect(s.name) AS stations_in_path,
+           collect(r.arrival) AS arrival_times
+    """
+
+    train_data = run_cypher(cypher_query, {"station_code": station_code})
+
+    if not train_data:
+        raise HTTPException(
+            status_code=404,
+            detail=f"No trains found for station {station_code}."
+        )
+
+    milp_input = {}
+    target_minutes = 1290  # 9:30 PM
+
+    for record in train_data:
+        train_id = record.get("train_id")
+        priority = record.get("priority")
+        arrival_time = record.get("arrival_times")[0]
+        print(train_id, priority, arrival_time)
+
+        try:
+            eta = time_to_minutes(arrival_time)
+            print(eta)
+            if abs(eta - target_minutes) <10: #only trains reaching at 930pm +- 10 mins
+                if train_id and eta is not None and priority is not None:
+                    milp_input[train_id] = {
+                        "eta": eta,
+                        "priority": priority
+                    }
+        except (ValueError, IndexError):
+            continue
+
+    if not milp_input:
+        raise HTTPException(
+            status_code=500,
+            detail="Failed to find arrival times for all trains at the specified station."
+        )
+
+    optimized_times, precedence_decisions = optimize_train_schedule_milp(milp_input)
+
+    if not optimized_times:
+        raise HTTPException(
+            status_code=500,
+            detail="MILP mein gadbad."
+        )
+
+    return {
+        "status": "ok",
+        "optimized_schedule": optimized_times,
+        "precedence_decisions": precedence_decisions
+    }
+
+@app.get("/health")
+def health_check():
+    """Health check endpoint"""
+    try:
+        driver.verify_connectivity()
+        return {
+            "status": "healthy",
+            "database": "connected",
+            "simulation": "running" if SIM_RUNNING else "stopped",
+            "websocket_connections": len(WS_CONNECTIONS)
+        }
+    except Exception as e:
+        return {
+            "status": "unhealthy", 
+            "database": "disconnected",
+            "error": str(e)
+        }
+    
+
+async def sim_loop():
+    sim_time = datetime.now()
+    while True:
+        try:
+            if not SIM_RUNNING:
+                await asyncio.sleep(SIM_STEP_SEC)
+                continue
+
+            sim_time += timedelta(seconds=SIM_STEP_SEC * TIME_FACTOR)
+            current_minutes = sim_time.hour * 60 + sim_time.minute + sim_time.second / 60
+
+            trains_query = """
+            MATCH (t:Train)-[r:ROUTE]->(s:Station)
+            WHERE r.seq IS NOT NULL
+            WITH t, r, s
+            ORDER BY t.id, toInteger(r.seq)
+            WITH t, collect({
+                station_code: s.code,
+                station_name: coalesce(s.name, "Unknown Station"),
+                arrival: r.arrival,
+                departure: r.departure,
+                seq: toInteger(r.seq),
+                distance: toInteger(coalesce(r.distance, 0))
+            }) AS route
+            WHERE size(route) > 0
+            RETURN t.id AS train_id, coalesce(t.name, "Unnamed Train") AS train_name, route
+            """
+            train_records = run_cypher(trains_query)
+            if not train_records:
+                await asyncio.sleep(SIM_STEP_SEC)
+                continue
+
+            for train in train_records:
+                try:
+                    route = train.get("route", [])
+                    tid = train.get("train_id")
+                    tname = train.get("train_name")
+
+                    status = "scheduled"
+                    progress = 0
+                    current_station = None
+                    next_station = None
+
+                    for i, stop in enumerate(route):
+                        arrival_time = stop.get("arrival")
+                        departure_time = stop.get("departure")
+                        if not arrival_time or not departure_time:
+                            continue
+
+                        arr_min = time_to_minutes(arrival_time)
+                        dep_min = time_to_minutes(departure_time)
+                        if arr_min < 0 or dep_min < 0:
+                            continue
+
+                        if current_minutes <= dep_min:
+                            current_station = stop.get("station_name", "Unknown Station")
+                            next_station = route[i+1].get("station_name") if i+1 < len(route) else None
+
+                            if next_station and i+1 < len(route):
+                                next_arrival_time = route[i+1].get("arrival")
+                                if next_arrival_time:
+                                    next_arrival = time_to_minutes(next_arrival_time)
+                                    travel_time = max(1, next_arrival - dep_min)
+                                    progress = (current_minutes - dep_min) / travel_time
+                                    progress = max(0, min(progress, 1))
+                                    status = "enroute"
+                            else:
+                                status = "at_station"
+                                progress = 1
+                            break
+
+                    await broadcast({
+                        "type": "status_update",
+                        "train_id": tid,
+                        "train_name": tname,
+                        "current_station": current_station,
+                        "next_station": next_station,
+                        "status": status,
+                        "progress": round(progress, 6),
+                        "sim_time": sim_time.strftime("%H:%M:%S")
+                    })
+
+                except Exception as e_train:
+                    print(f"[Train Processing Error] {train.get('train_id')}: {e_train}")
+
+        except Exception as e:
+            print(f"[Simulation Loop Error] {e}")
+
+        await asyncio.sleep(SIM_STEP_SEC)
+
+
+def minutes_to_hhmmss(minutes: float) -> str:
+    total_seconds = int(round(minutes * 60))
+    h = (total_seconds // 3600) % 24
+    m = (total_seconds % 3600) // 60
+    s = total_seconds % 60
+    return f"{h:02d}:{m:02d}:{s:02d}"
+
+def fetch_train_route(train_id: str):
+    query = """
+    MATCH (t:Train {id: $train_id})-[r:ROUTE]->(s:Station)
+    RETURN r.seq AS seq, r.arrival AS arrival, r.departure AS departure
+    ORDER BY r.seq
+    """
+    route = run_cypher(query, {"train_id": train_id})
+    if not route:
+        raise RuntimeError(f"No route found for train {train_id}")
+    return route
+
+def check_conflicts(proposed_schedule: dict) -> List[dict]:
+    conflicts = []
+    segment_times = {} 
+    for train_id, train_data in proposed_schedule.items():
+        stops = train_data["stops"]
+        for i in range(len(stops)-1):
+            from_stop = stops[i]
+            to_stop = stops[i+1]
+            start_min = time_to_minutes(from_stop["new_departure"])
+            end_min = time_to_minutes(to_stop["new_arrival"])
+            key = (from_stop["station_name"], to_stop["station_name"])
+            segment_times.setdefault(key, []).append((train_id, start_min, end_min))
+    
+    for seg, intervals in segment_times.items():
+        intervals.sort(key=lambda x: x[1])
+        for i in range(len(intervals)):
+            t1, s1, e1 = intervals[i]
+            for j in range(i+1, len(intervals)):
+                t2, s2, e2 = intervals[j]
+                if s2 < e1:
+                    conflicts.append({"train1": t1, "train2": t2, "segment": seg})
+    return conflicts
+
+def apply_train_departure_to_db(train_id: str, new_dep_minutes: float):
+    route = fetch_train_route(train_id)
+    orig_dep = next((time_to_minutes(stop["departure"]) for stop in route if stop.get("departure")), None)
+    if orig_dep is None:
+        raise RuntimeError(f"Origin departure not found for train {train_id}")
+    delta = new_dep_minutes - orig_dep
+
+    updates = []
+    for stop in route:
+        seq = stop["seq"]
+        arr_min = time_to_minutes(stop["arrival"]) if stop.get("arrival") else None
+        dep_min = time_to_minutes(stop["departure"]) if stop.get("departure") else None
+
+        new_arr = minutes_to_hhmmss(arr_min + delta) if arr_min is not None else None
+        new_dep = minutes_to_hhmmss(dep_min + delta) if dep_min is not None else None
+
+        update_q = """
+        MATCH (t:Train {id: $train_id})-[r:ROUTE {seq: $seq}]->(s:Station)
+        SET r.arrival = $new_arr, r.departure = $new_dep
+        """
+        run_cypher(update_q, {"train_id": train_id, "seq": seq, "new_arr": new_arr, "new_dep": new_dep})
+        updates.append({"seq": seq, "new_arrival": new_arr, "new_departure": new_dep})
+    return updates
+
 
 if __name__ == "__main__":
     import uvicorn
