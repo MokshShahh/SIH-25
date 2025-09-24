@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Train Simulator Dashboard</title>
+  <style>
+    body { font-family: Arial, sans-serif; padding: 20px; }
+    h1 { text-align: center; }
+    #connection-status {
+      text-align: center;
+      padding: 10px;
+      margin: 10px 0;
+      border-radius: 4px;
+      font-weight: bold;
+    }
+    .connected { background-color: #d4edda; color: #155724; }
+    .disconnected { background-color: #f8d7da; color: #721c24; }
+    .connecting { background-color: #fff3cd; color: #856404; }
+    #kpi { margin-top: 20px; }
+    #kpi span { margin-right: 20px; font-weight: bold; }
+    table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+    th, td { padding: 8px; border: 1px solid #ccc; text-align: left; }
+    th { background: #f4f4f4; }
+    .scheduled { background-color: #f0f0f0; }
+    .enroute { background-color: #fff7e6; }
+    .at_station { background-color: #e6f7ff; }
+    .optimized { background-color: #e6ffe6; }
+    .conflict { background-color: #ffe6e6; }
+    .progress-bar { width: 100%; height: 15px; background: #ddd; border-radius: 4px; overflow: hidden; }
+    .progress-fill { height: 100%; background: #4caf50; width: 0%; transition: width 0.3s ease; }
+    button { padding: 8px 12px; margin-right: 10px; cursor: pointer; }
+    .diff { font-weight: bold; color: #d35400; }
+    #debug { margin-top: 20px; padding: 10px; background: #f8f9fa; border: 1px solid #dee2e6; border-radius: 4px; max-height: 200px; overflow-y: auto; font-family: monospace; font-size: 12px; }
+  </style>
+</head>
+<body>
+<h1>Nationwide Train Simulator</h1>
+
+<div id="connection-status" class="connecting">Connecting to WebSocket...</div>
+
+<div id="controls">
+  <button id="start-sim-btn">Start Simulation</button>
+  <button id="stop-sim-btn">Stop Simulation</button>
+  <button id="propose-btn">Propose Optimized Schedule</button>
+  <button id="apply-btn" disabled>Apply Schedule</button>
+</div>
+
+<div id="kpi">
+  <span>Total Trains: <span id="total-trains">0</span></span>
+  <span>Delayed Trains: <span id="delayed-trains">0</span></span>
+  <span>Conflicts: <span id="conflicts-count">0</span></span>
+  <span>Total Delay (min): <span id="total-delay">0</span></span>
+</div>
+
+<table id="train-table">
+  <thead>
+    <tr>
+      <th>Train ID</th>
+      <th>Name</th>
+      <th>Current Station</th>
+      <th>Next Station</th>
+      <th>Status</th>
+      <th>Progress</th>
+      <th>Old Departure</th>
+      <th>New Departure</th>
+      <th>Old Arrival</th>
+      <th>New Arrival</th>
+      <th>Sim Time</th>
+    </tr>
+  </thead>
+  <tbody></tbody>
+</table>
+
+<div id="debug">
+  <h4>Debug Log:</h4>
+  <div id="debug-content"></div>
+</div>
+
+<script>
+const trains = {};
+let proposedSchedule = null;
+let fullRoutes = {};
+let ws = null;
+
+function debugLog(message) {
+  const debugContent = document.getElementById('debug-content');
+  const timestamp = new Date().toLocaleTimeString();
+  debugContent.innerHTML += `[${timestamp}] ${message}<br>`;
+  debugContent.scrollTop = debugContent.scrollHeight;
+  console.log(`[${timestamp}] ${message}`);
+}
+
+function connectWebSocket() {
+  const wsScheme = window.location.protocol === "https:" ? "wss" : "ws";
+  const wsHost = window.location.hostname;
+  const wsPort = window.location.port || (window.location.protocol === "https:" ? 443 : 80);
+
+  const backendPort = "8000";
+  const wsUrl = `${wsScheme}://${wsHost}:${backendPort}/ws/updates`;
+
+  debugLog(`Attempting to connect to WebSocket: ${wsUrl}`);
+  updateConnectionStatus('connecting');
+
+  ws = new WebSocket(wsUrl);
+
+  ws.onopen = () => {
+    debugLog("WebSocket connected successfully");
+    updateConnectionStatus('connected');
+  };
+
+  ws.onmessage = (event) => {
+    try {
+      const data = JSON.parse(event.data);
+      debugLog(`Received: ${data.type} for train ${data.train_id || 'unknown'}`);
+      
+      if (data.type === "status_update") {
+        if (!trains[data.train_id]) trains[data.train_id] = {};
+        trains[data.train_id] = {...trains[data.train_id], ...data};
+        updateTable();
+      } else if (data.type === "schedule_update") {
+        debugLog(`Schedule updated for train ${data.train_id}`);
+      }
+    } catch (e) {
+      debugLog(`Error parsing message: ${e.message}`);
+    }
+  };
+
+  ws.onclose = (event) => {
+    debugLog(`WebSocket closed (code: ${event.code}, reason: ${event.reason})`);
+    updateConnectionStatus('disconnected');
+    
+    setTimeout(() => {
+      debugLog("Attempting to reconnect...");
+      connectWebSocket();
+    }, 3000);
+  };
+
+  ws.onerror = (error) => {
+    debugLog(`WebSocket error: ${error}`);
+    updateConnectionStatus('disconnected');
+  };
+}
+
+function updateConnectionStatus(status) {
+  const statusEl = document.getElementById('connection-status');
+  statusEl.className = status;
+  
+  switch(status) {
+    case 'connected':
+      statusEl.textContent = 'Connected to WebSocket';
+      break;
+    case 'connecting':
+      statusEl.textContent = 'Connecting to WebSocket...';
+      break;
+    case 'disconnected':
+      statusEl.textContent = 'Disconnected from WebSocket - Attempting to reconnect...';
+      break;
+  }
+}
+
+async function fetchTrainRoutes() {
+  try {
+    debugLog("🚂 Fetching train routes...");
+    const res = await fetch("http://localhost:8000/trains/all");
+    if (!res.ok) {
+      throw new Error(`HTTP ${res.status}: ${res.statusText}`);
+    }
+    const data = await res.json();
+    data.forEach(t => fullRoutes[t.train_id] = t.route);
+    debugLog(`Loaded ${data.length} train routes`);
+  } catch(e) {
+    debugLog(`Failed to fetch routes: ${e.message}`);
+  }
+}
+
+function timeToMinutes(t) {
+  if (!t) return 0;
+  const parts = t.split(":");
+  return parseInt(parts[0])*60 + parseInt(parts[1]) + (parts[2] ? parseInt(parts[2])/60 : 0);
+}
+
+function minutesToTime(mins) {
+  const h = Math.floor(mins/60);
+  const m = Math.floor(mins%60);
+  const s = Math.floor((mins%1)*60);
+  return `${h.toString().padStart(2,'0')}:${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+}
+
+document.getElementById("start-sim-btn").addEventListener("click", async () => {
+  try {
+    const res = await fetch("http://localhost:8000/simulate/start", { method: "POST" });
+    const data = await res.json();
+    debugLog(`Simulation started: ${data.message}`);
+  } catch(e) {
+    debugLog(`Failed to start simulation: ${e.message}`);
+  }
+});
+
+document.getElementById("stop-sim-btn").addEventListener("click", async () => {
+  try {
+    const res = await fetch("http://localhost:8000/simulate/stop", { method: "POST" });
+    const data = await res.json();
+    debugLog(`Simulation stopped: ${data.message}`);
+  } catch(e) {
+    debugLog(`Failed to stop simulation: ${e.message}`);
+  }
+});
+
+document.getElementById("propose-btn").addEventListener("click", async () => {
+  debugLog("Proposing optimized schedule...");
+
+  if (Object.keys(trains).length === 0) {
+    debugLog("No train data available. Start simulation first.");
+    alert("No train data available. Start simulation first.");
+    return;
+  }
+
+  if (Object.keys(fullRoutes).length === 0) {
+    await fetchTrainRoutes();
+    if (Object.keys(fullRoutes).length === 0) {
+      alert("Unable to load train routes.");
+      return;
+    }
+  }
+
+  const scheduleInput = {};
+  for (const trainId of Object.keys(trains)) {
+    const route = fullRoutes[trainId];
+    if (!route || !route[0]?.departure) continue;
+    scheduleInput[trainId] = { departure_minutes: timeToMinutes(route[0].departure) };
+  }
+
+  try {
+    const res = await fetch("http://localhost:8000/optimize/propose", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify(scheduleInput)
+    });
+
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    proposedSchedule = await res.json();
+
+    if (proposedSchedule.status === "proposed") {
+      debugLog(`Schedule proposed for ${Object.keys(proposedSchedule.schedule).length} trains`);
+      document.getElementById("apply-btn").disabled = false;
+    } else {
+      debugLog(`Propose failed: ${proposedSchedule.message}`);
+    }
+
+    updateTable();
+  } catch(e) {
+    debugLog(`Propose request failed: ${e.message}`);
+  }
+});
+
+function updateTable() {
+  const tbody = document.querySelector("#train-table tbody");
+  tbody.innerHTML = "";
+
+  let totalTrains = 0, delayed = 0, conflicts = 0, totalDelay = 0;
+
+  Object.values(trains).forEach(t => {
+    totalTrains++;
+    let statusClass = t.status || "scheduled";
+
+    let oldDep = "-", newDep = "-", oldArr = "-", newArr = "-";
+
+    const route = fullRoutes[t.train_id];
+    const proposed = proposedSchedule?.schedule[t.train_id];
+
+    if (route?.length) {
+      oldDep = route[0].departure || "-";
+      oldArr = route[route.length-1].arrival || "-";
+    }
+
+    if (proposed?.stops?.length) {
+      newDep = proposed.stops[0].new_departure ?? "-";
+      newArr = proposed.stops[proposed.stops.length-1].new_arrival ?? "-";
+
+      if (oldDep !== newDep || oldArr !== newArr) {
+        statusClass = "optimized";
+        const delay = timeToMinutes(newDep) - timeToMinutes(oldDep);
+        if (delay > 0) delayed++;
+        totalDelay += delay;
+      }
+    }
+
+    if (proposedSchedule?.conflicts?.length) {
+      const conflictIds = proposedSchedule.conflicts.flatMap(c => [c.train1, c.train2]);
+      if (conflictIds.includes(t.train_id)) statusClass = "conflict";
+      conflicts = proposedSchedule.conflicts.length;
+    }
+
+    let progressPercent = t.progress !== undefined ? Math.min(Math.max(t.progress*100,0),100) : 0;
+    let progressColor = "#4caf50";
+    if (statusClass==="optimized") progressColor="#2e7d32";
+    if (statusClass==="conflict") progressColor="#e53935";
+    if (statusClass==="scheduled" && t.status==="enroute") progressColor="#ffa726";
+
+    const tr = document.createElement("tr");
+    tr.className = statusClass;
+    tr.innerHTML = `
+      <td>${t.train_id || '-'}</td>
+      <td>${t.train_name || '-'}</td>
+      <td>${t.current_station || '-'}</td>
+      <td>${t.next_station || '-'}</td>
+      <td>${statusClass}</td>
+      <td>
+        <div class="progress-bar">
+          <div class="progress-fill" style="width:${progressPercent}%; background:${progressColor}"></div>
+        </div>
+      </td>
+      <td class="diff">${oldDep}</td>
+      <td class="diff">${newDep}</td>
+      <td class="diff">${oldArr}</td>
+      <td class="diff">${newArr}</td>
+      <td>${t.sim_time || '-'}</td>
+    `;
+    tbody.appendChild(tr);
+  });
+
+  document.getElementById("total-trains").textContent = totalTrains;
+  document.getElementById("delayed-trains").textContent = delayed;
+  document.getElementById("conflicts-count").textContent = conflicts;
+  document.getElementById("total-delay").textContent = totalDelay.toFixed(1);
+}
+
+document.getElementById("apply-btn").addEventListener("click", async () => {
+  if (!proposedSchedule?.schedule) return;
+  debugLog("🔧 Applying optimized schedule...");
+
+  try {
+    const res = await fetch("http://localhost:8000/optimize/apply", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify(proposedSchedule.schedule)
+    });
+    const data = await res.json();
+
+    if (data.status === "ok") {
+      debugLog(`✅ Applied schedule to ${data.applied_trains.length} trains`);
+      document.getElementById("apply-btn").disabled = true;
+    }
+    updateTable();
+  } catch(e) {
+    debugLog(`Apply failed: ${e.message}`);
+  }
+});
+
+async function initialize() {
+  debugLog("Initializing dashboard...");
+  await fetchTrainRoutes();
+  connectWebSocket();
+  debugLog("Dashboard ready");
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initialize);
+} else {
+  initialize();
+}
+</script>
+</body>
+</html>

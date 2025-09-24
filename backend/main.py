@@ -1,13 +1,14 @@
 import asyncio
 import os
-from fastapi import FastAPI, WebSocket, HTTPException
+from fastapi import FastAPI, WebSocket, HTTPException, Body
 from fastapi.middleware.cors import CORSMiddleware
 from typing import List
 from datetime import datetime, timedelta
 from neo4j import GraphDatabase
 from dotenv import load_dotenv
 from contextlib import asynccontextmanager
-from .MILP import optimize_train_schedule_milp
+from MILP import optimize_train_schedule_milp
+from typing import Dict
 
 origins = [
     "http://localhost:5500",
@@ -118,7 +119,7 @@ def get_stations():
 @app.get("/stations/map")
 def get_map_data():
     query = """
-    MATCH p=(s1:Station)-[:CONNECTS_TO]->(s2:Station) 
+    MATCH p=(s1:Station)-[:TRACK]->(s2:Station) 
     RETURN p LIMIT 25
     """
     with driver.session() as session:
@@ -506,6 +507,72 @@ async def apply_optimized_schedule(schedule: dict):
     return {
         "status": "ok",
         "applied_trains": applied_trains,
+        "precedence_decisions": precedence_decisions
+    }
+
+
+@app.post("/optimize/station")
+async def optimize_at_station():
+    station_code = "DR"
+    current_minutes = 120
+    if not station_code or current_minutes is None:
+        raise HTTPException(
+            status_code=400,
+            detail="`station_code` and `current_minutes` are required"
+        )
+    
+    query = """
+    MATCH (t:Train)-[r:ROUTE]->(s:Station)
+    WHERE s.code="DR"
+    WITH t, r, s
+    ORDER BY t.id, toInteger(r.seq)
+    RETURN t.id AS train_id,
+        t.name AS train_name,
+        t.priority AS priority,
+        collect(s.name) AS stations_in_path,
+        collect(r.arrival) AS arrival_times,
+        collect(r.departure) AS departure_times
+    """
+    
+    incoming_trains = run_cypher(query, {"station_code": station_code, "current_minutes": current_minutes})
+
+    if not incoming_trains:
+        return {
+            "status": "info",
+            "message": f"No incoming trains found for station {station_code} at the current time."
+        }
+
+    milp_input = {}
+    for train_record in incoming_trains:
+        train_id = train_record.get("train_id")
+        eta_str = train_record.get("estimated_arrival")
+        priority = train_record.get("priority")
+        
+        eta = time_to_minutes(eta_str)
+        
+        if train_id and eta is not None and priority is not None:
+            milp_input[train_id] = {
+                "eta": eta,
+                "priority": priority
+            }
+
+    if not milp_input:
+        return {
+            "status": "error",
+            "message": "Failed to process train data for optimization."
+        }
+        
+    optimized_times, precedence_decisions = optimize_train_schedule_milp(milp_input)
+    
+    if not optimized_times:
+        return {
+            "status": "error",
+            "message": "MILP solver could not find an optimal solution."
+        }
+        
+    return {
+        "status": "ok",
+        "optimized_schedule": optimized_times,
         "precedence_decisions": precedence_decisions
     }
 
