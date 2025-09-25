@@ -96,6 +96,15 @@ blocks:
   speed_limit: 80
   to: KYN
 headway_s: 180
+roadblocks:
+- block_name: PNVL-TNA
+  duration_s: 3094
+  new_speed_limit: 15
+  start_time_s: 1334
+- block_name: TNA-PNVL
+  duration_s: 1458
+  new_speed_limit: 38
+  start_time_s: 810
 stations:
 - code: PNVL
   name: PANVEL

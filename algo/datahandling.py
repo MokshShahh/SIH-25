@@ -1,5 +1,6 @@
 from neo4j import GraphDatabase
 import yaml, json, os
+import random
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -25,7 +26,7 @@ PLATFORM_MAP = {
     "CSMT": 18,
     "LTT": 7,
     "KYN": 8,
-    "DR": 8, 
+    "DR": 8,
     "TNA": 10,
     "PNVL": 7
 }
@@ -37,7 +38,6 @@ def generate_features(stations, trains):
     station_features = {}
     for station in stations:
         station_code = station.get("code")
-      
         num_platforms = PLATFORM_MAP.get(station_code, 2)
         station_features[station_code] = {
             "platforms": num_platforms,
@@ -48,19 +48,48 @@ def generate_features(stations, trains):
     train_features = []
     for train in trains:
         train_type = train.get("type", "Other")
-    
         priority = PRIORITY_MAP.get(train_type, 1)
 
         train_features.append({
             "priority": priority,
-            "route": [train.get("origin"), train.get("dest")],  
+            "route": [train.get("origin"), train.get("dest")],
             "schedule": {
                 "departure_s": train.get("sched_departure_s"),
                 "arrival_s": train.get("sched_arrival_s")
             }
         })
-    
     return station_features, train_features
+
+def add_roadblocks(corridor, num_roadblocks=1, max_duration=3600, min_speed=10, max_speed=40):
+    """
+    Randomly adds roadblocks (speed limit reductions) to the corridor data.
+    """
+    blocks = corridor.get("blocks", [])
+    roadblocks = []
+    
+    
+    if len(blocks) < num_roadblocks:
+        print("Warning: Not enough blocks to create the requested number of roadblocks.")
+        return roadblocks
+ 
+    roadblock_blocks = random.sample(blocks, num_roadblocks)
+    
+    for block in roadblock_blocks:
+        new_speed_limit = random.randint(min_speed, max_speed)
+        duration_s = random.randint(600, max_duration)
+        start_time_s = random.randint(0, 1800) 
+        
+        roadblock = {
+            "block_name": block["name"],
+            "new_speed_limit": new_speed_limit,
+            "duration_s": duration_s,
+            "start_time_s": start_time_s
+        }
+        roadblocks.append(roadblock)
+        
+        print(f"Roadblock added to {block['name']}: Speed reduced to {new_speed_limit} km/h for {duration_s} seconds starting at {start_time_s}s.")
+    
+    return roadblocks
 
 def export_corridor(station_codes, corridor_yaml="configs/corridor.yaml"):
     with driver.session() as session:
@@ -90,8 +119,11 @@ def export_corridor(station_codes, corridor_yaml="configs/corridor.yaml"):
         corridor = {
             "stations": list(stations.values()),
             "blocks": blocks,
-            "headway_s": 180
+            "headway_s": 180,
         }
+        
+       
+        corridor["roadblocks"] = add_roadblocks(corridor, num_roadblocks=2)
 
         os.makedirs(os.path.dirname(corridor_yaml), exist_ok=True)
         with open(corridor_yaml, "w") as f:
@@ -107,7 +139,6 @@ def export_scenarios(station_codes, out_dir="data/scenarios"):
         WHERE t.source IN $codes OR t.destination IN $codes
         RETURN t.id AS tid, t.source AS origin, t.destination AS dest,
                t.type AS type, t.priority AS priority
-       
         """
         trains = session.run(q, codes=station_codes)
 
@@ -118,7 +149,7 @@ def export_scenarios(station_codes, out_dir="data/scenarios"):
                 "tid": tr["tid"],
                 "origin": tr["origin"],
                 "dest": tr["dest"],
-                "route_blocks": [],  
+                "route_blocks": [],
                 "sched_departure_s": start_time + idx*300,
                 "sched_arrival_s": start_time + (idx+1)*1200,
                 "priority": tr["priority"] or 3,
@@ -135,7 +166,7 @@ def export_scenarios(station_codes, out_dir="data/scenarios"):
 
 
 if __name__ == "__main__":
-   
+    
     corridor_stations = ["CSMT", "DR", "TNA","KYN","PNVL","LTT","TNA","THK", "DI", "KOPR","MBQ","ADH","CLA"]
     export_corridor(corridor_stations)
     export_scenarios(corridor_stations)
@@ -149,7 +180,7 @@ if __name__ == "__main__":
     {"tid": "99907", "origin": "PUNE", "dest": "TGN", "type": "Passenger (MEMU)", "sched_departure_s": 8000, "sched_arrival_s": 10000}
     ] 
     sample_stations = [{"code": "CSMT"}, {"code": "LTT"},
-                       {"code": "DR"},
+                        {"code": "DR"},
         {"code": "TNA"},
         {"code": "KYN"},
         {"code": "PNVL"},
