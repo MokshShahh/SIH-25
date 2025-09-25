@@ -1,6 +1,19 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { ZoomIn, ZoomOut, Home, Play, Pause, RotateCcw } from 'lucide-react';
-import axios from 'axios';
+import { ZoomIn, ZoomOut, Home, Play, Pause } from 'lucide-react';
+import { NavLink } from 'react-router-dom';
+
+// Sample data 
+const sampleData = [
+  {'p': [{'city': 'Mumbai', 'name': 'Mumbai Central', 'type': 'Interstate'}, 'CONNECTS_TO', {'city': 'Surat', 'name': 'Surat', 'type': 'Interstate'}]},
+  {'p': [{'city': 'Mumbai', 'name': 'Mumbai Central', 'type': 'Interstate'}, 'CONNECTS_TO', {'city': 'Mumbai', 'name': 'Dadar', 'type': 'Terminal'}]},
+  {'p': [{'city': 'Delhi', 'name': 'New Delhi', 'type': 'Interstate'}, 'CONNECTS_TO', {'city': 'Bhopal', 'name': 'Bhopal Junction', 'type': 'Interstate'}]},
+  {'p': [{'city': 'Pune', 'name': 'Pune Junction', 'type': 'Interstate'}, 'CONNECTS_TO', {'city': 'Mumbai', 'name': 'Mumbai Central', 'type': 'Interstate'}]},
+  {'p': [{'city': 'Surat', 'name': 'Surat', 'type': 'Interstate'}, 'CONNECTS_TO', {'city': 'Delhi', 'name': 'New Delhi', 'type': 'Interstate'}]},
+  {'p': [{'city': 'Bhopal', 'name': 'Bhopal Junction', 'type': 'Interstate'}, 'CONNECTS_TO', {'city': 'Pune', 'name': 'Pune Junction', 'type': 'Interstate'}]},
+  {'p': [{'city': 'Mumbai', 'name': 'Dadar', 'type': 'Terminal'}, 'CONNECTS_TO', {'city': 'Mumbai', 'name': 'Kalyan Junction', 'type': 'Local'}]},
+  {'p': [{'city': 'Mumbai', 'name': 'Thane', 'type': 'Local'}, 'CONNECTS_TO', {'city': 'Mumbai', 'name': 'Mumbai Central', 'type': 'Interstate'}]},
+  {'p': [{'city': 'Mumbai', 'name': 'Kalyan Junction', 'type': 'Local'}, 'CONNECTS_TO', {'city': 'Mumbai', 'name': 'Thane', 'type': 'Local'}]}
+];
 
 function Dashboard() {
   const svgRef = useRef(null);
@@ -12,18 +25,22 @@ function Dashboard() {
   const [connections, setConnections] = useState([]);
   const [trains, setTrains] = useState([]);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [fetchedData, setFetchedData] = useState([]);
+  const [selectedStation, setSelectedStation] = useState(null);
+  const [showPopup, setShowPopup] = useState(false);
 
+  // Smart positioning algorithm for better station layout
   const processData = useCallback((data) => {
     const stationMap = new Map();
     const connectionList = [];
     
+    // First pass: collect all stations and connections
     data.forEach(item => {
       if (item.p && item.p.length === 3) {
         const [origin, relation, destination] = item.p;
         
-        if (relation === 'TRACK') {
+        if (relation === 'CONNECTS_TO' || relation === 'TRACK') {
           const originKey = `${origin.city}-${origin.name}`;
           const destKey = `${destination.city}-${destination.name}`;
           
@@ -31,8 +48,7 @@ function Dashboard() {
             stationMap.set(originKey, {
               ...origin,
               id: originKey,
-              x: Math.random() * 600 - 300,
-              y: Math.random() * 400 - 200
+              connections: []
             });
           }
           
@@ -40,8 +56,7 @@ function Dashboard() {
             stationMap.set(destKey, {
               ...destination,
               id: destKey,
-              x: Math.random() * 600 - 300,
-              y: Math.random() * 400 - 200
+              connections: []
             });
           }
           
@@ -50,34 +65,129 @@ function Dashboard() {
             to: destKey,
             id: `${originKey}-${destKey}`
           });
+          
+          // Track connections for positioning
+          stationMap.get(originKey).connections.push(destKey);
+          stationMap.get(destKey).connections.push(originKey);
         }
       }
     });
     
+    // Smart positioning algorithm
+    const positionStations = () => {
+      const stations = Array.from(stationMap.values());
+      const cityGroups = {};
+      
+      // Group stations by city
+      stations.forEach(station => {
+        if (!cityGroups[station.city]) {
+          cityGroups[station.city] = [];
+        }
+        cityGroups[station.city].push(station);
+      });
+      
+      // Position cities in a larger circular layout for better visibility
+      const cities = Object.keys(cityGroups);
+      const cityPositions = {};
+      const radius = 250; // Increased radius for better spacing
+      
+      cities.forEach((city, index) => {
+        const angle = (index * 2 * Math.PI) / cities.length;
+        cityPositions[city] = {
+          x: Math.cos(angle) * radius,
+          y: Math.sin(angle) * radius
+        };
+      });
+      
+      // Position stations within each city with better spacing
+      Object.entries(cityGroups).forEach(([city, cityStations]) => {
+        const cityPos = cityPositions[city];
+        
+        if (cityStations.length === 1) {
+          cityStations[0].x = cityPos.x;
+          cityStations[0].y = cityPos.y;
+        } else {
+          // Create a circular arrangement for multiple stations in same city
+          const stationRadius = Math.max(30, cityStations.length * 8);
+          cityStations.forEach((station, index) => {
+            const angle = (index * 2 * Math.PI) / cityStations.length;
+            station.x = cityPos.x + Math.cos(angle) * stationRadius;
+            station.y = cityPos.y + Math.sin(angle) * stationRadius;
+          });
+        }
+      });
+      
+      // Apply force-directed positioning for better layout
+      for (let i = 0; i < 150; i++) {
+        stations.forEach(station => {
+          let fx = 0, fy = 0;
+          
+          // Repulsion from other stations
+          stations.forEach(other => {
+            if (station.id !== other.id) {
+              const dx = station.x - other.x;
+              const dy = station.y - other.y;
+              const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+              if (dist < 120) { // Increased minimum distance
+                const force = 1000 / (dist * dist);
+                fx += (dx / dist) * force;
+                fy += (dy / dist) * force;
+              }
+            }
+          });
+          
+          // Attraction to connected stations (weaker force)
+          station.connections.forEach(connId => {
+            const connected = stationMap.get(connId);
+            if (connected) {
+              const dx = connected.x - station.x;
+              const dy = connected.y - station.y;
+              const dist = Math.sqrt(dx * dx + dy * dy) || 1;
+              const force = Math.min(dist / 300, 0.8);
+              fx += (dx / dist) * force * 1.5;
+              fy += (dy / dist) * force * 1.5;
+            }
+          });
+          
+          station.x += fx * 0.08;
+          station.y += fy * 0.08;
+        });
+      }
+    };
+    
+    positionStations();
     setStations(stationMap);
     setConnections(connectionList);
     
+    // Create trains for animation
     const trainList = connectionList.map((conn, index) => ({
       id: `train-${index}`,
       connectionId: conn.id,
       progress: Math.random(),
-      speed: 0.005 + Math.random() * 0.01
+      speed: 0.003 + Math.random() * 0.007,
+      direction: Math.random() > 0.5 ? 'forward' : 'backward'
     }));
     
     setTrains(trainList);
   }, []);
 
+  // Handle backend data fetching
   useEffect(() => {
-    const backend_url = "http://127.0.0.1:8000"
-    axios.get(`${backend_url}/stations/map`)
-      .then(response => {
-        setFetchedData(response.data.stations);
-        setIsLoading(false);
-      })
-      .catch(error => {
-        console.error('Error fetching data:', error);
-        setIsLoading(false);
-      });
+    // Comment out the API call for now since axios is not imported
+    // const backend_url = "http://127.0.0.1:8000"
+    // axios.get(`${backend_url}/stations/map`)
+    //   .then(response => {
+    //     setFetchedData(response.data.stations);
+    //     setIsLoading(false);
+    //   })
+    //   .catch(error => {
+    //     console.error('Error fetching data:', error);
+    //     setIsLoading(false);
+    //   });
+    
+    // Use sample data for now
+    setFetchedData(sampleData);
+    setIsLoading(false);
   }, []);
 
   useEffect(() => {
@@ -86,6 +196,7 @@ function Dashboard() {
     }
   }, [fetchedData, processData]);
 
+  // Animation loop
   useEffect(() => {
     if (!isAnimating) return;
     
@@ -149,7 +260,7 @@ function Dashboard() {
     
     setViewBox({
       x: svgX - (mouseX / 800) * newWidth,
-      y: svgY - (mouseY / 600) * newHeight,
+      y: svgY - (mouseY / 600) * newWidth,
       width: newWidth,
       height: newHeight
     });
@@ -186,10 +297,44 @@ function Dashboard() {
     
     if (!fromStation || !toStation) return { x: 0, y: 0 };
     
-    const x = fromStation.x + (toStation.x - fromStation.x) * train.progress;
-    const y = fromStation.y + (toStation.y - fromStation.y) * train.progress;
+    let progress = train.progress;
+    if (train.direction === 'backward') {
+      progress = 1 - progress;
+    }
+    
+    const x = fromStation.x + (toStation.x - fromStation.x) * progress;
+    const y = fromStation.y + (toStation.y - fromStation.y) * progress;
     
     return { x, y };
+  };
+
+  const handleStationClick = (station) => {
+    setSelectedStation(station);
+    setShowPopup(true);
+  };
+
+  const getStationTrains = (stationId) => {
+    const arrivals = [];
+    const departures = [];
+    
+    connections.forEach(conn => {
+      if (conn.from === stationId) {
+        departures.push({
+          to: stations.get(conn.to)?.name,
+          city: stations.get(conn.to)?.city,
+          type: 'Departure'
+        });
+      }
+      if (conn.to === stationId) {
+        arrivals.push({
+          from: stations.get(conn.from)?.name,
+          city: stations.get(conn.from)?.city,
+          type: 'Arrival'
+        });
+      }
+    });
+    
+    return { arrivals, departures };
   };
 
   if (isLoading) {
@@ -206,9 +351,18 @@ function Dashboard() {
 
   return (
     <div className="h-screen w-full bg-gray-50 flex flex-col">
-      <div className="bg-white text-gray-800 px-6 py-4 shadow-lg border-b">
+      {/* Navbar */}
+      <div className="bg-white text-gray-800 px-6 py-4 shadow-lg border-b flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-700">Train Network Dashboard</h1>
+        <NavLink 
+          to="/" 
+          className="px-4 py-2 bg-blue-500 hover:bg-blue-600 text-white rounded-lg transition-colors"
+        >
+          Home
+        </NavLink>
       </div>
+      
+      {/* Controls */}
       <div className="bg-white px-6 py-2 flex items-center justify-between border-b border-gray-200 shadow-sm">
         <div className="flex items-center space-x-4">
           <button
@@ -237,6 +391,7 @@ function Dashboard() {
         </div>
       </div>
       
+      {/* Legend */}
       <div className="bg-white px-6 py-2 flex items-center space-x-6 text-sm text-gray-700 border-b border-gray-200 shadow-sm">
         <div className="flex items-center space-x-2">
           <div className="w-3 h-3 rounded-full bg-blue-600"></div>
@@ -254,8 +409,12 @@ function Dashboard() {
           <div className="w-3 h-3 bg-orange-400"></div>
           <span>Trains</span>
         </div>
+        <div className="text-xs text-gray-500 italic ml-4">
+          Click on any station for details
+        </div>
       </div>
       
+      {/* Main Canvas */}
       <div 
         ref={containerRef}
         className="flex-1 overflow-hidden cursor-move bg-gray-50"
@@ -285,8 +444,10 @@ function Dashboard() {
             </filter>
           </defs>
           
+          {/* Dotted Background */}
           <rect x={viewBox.x} y={viewBox.y} width={viewBox.width} height={viewBox.height} fill="url(#dots)" />
           
+          {/* Connections */}
           {connections.map(connection => {
             const fromStation = stations.get(connection.from);
             const toStation = stations.get(connection.to);
@@ -301,19 +462,21 @@ function Dashboard() {
                   x2={toStation.x}
                   y2={toStation.y}
                   stroke="#6b7280"
-                  strokeWidth="2"
-                  opacity="0.8"
+                  strokeWidth="3"
+                  opacity="0.7"
                 />
+                {/* Direction arrow */}
                 <polygon
-                  points={`${toStation.x - 8},${toStation.y - 4} ${toStation.x - 8},${toStation.y + 4} ${toStation.x - 2},${toStation.y}`}
+                  points={`${toStation.x - 10},${toStation.y - 5} ${toStation.x - 10},${toStation.y + 5} ${toStation.x - 2},${toStation.y}`}
                   fill="#9ca3af"
                   opacity="0.8"
-                  transform={`rotate(${Math.atan2(toStation.y - fromStation.y, toStation.x - fromStation.x) * 180 / Math.PI}, ${toStation.x - 5}, ${toStation.y})`}
+                  transform={`rotate(${Math.atan2(toStation.y - fromStation.y, toStation.x - fromStation.x) * 180 / Math.PI}, ${toStation.x - 6}, ${toStation.y})`}
                 />
               </g>
             );
           })}
           
+          {/* Trains */}
           {isAnimating && trains.map(train => {
             const pos = getTrainPosition(train);
             return (
@@ -321,54 +484,59 @@ function Dashboard() {
                 <circle
                   cx={pos.x}
                   cy={pos.y}
-                  r="4"
+                  r="5"
                   fill="#f97316"
                   filter="url(#glow)"
                 />
                 <circle
                   cx={pos.x}
                   cy={pos.y}
-                  r="2"
+                  r="3"
                   fill="#ea580c"
                 />
               </g>
             );
           })}
           
+          {/* Stations */}
           {Array.from(stations.values()).map(station => (
             <g key={station.id}>
+              {/* Station glow */}
               <circle
                 cx={station.x}
                 cy={station.y}
-                r="12"
+                r="15"
                 fill={getStationColor(station.type)}
-                opacity="0.3"
+                opacity="0.2"
                 filter="url(#glow)"
               />
+              {/* Station circle */}
               <circle
                 cx={station.x}
                 cy={station.y}
-                r="8"
+                r="10"
                 fill={getStationColor(station.type)}
                 stroke="#ffffff"
                 strokeWidth="2"
-                className="cursor-pointer hover:r-10 transition-all"
+                className="cursor-pointer hover:r-12 transition-all"
+                onClick={() => handleStationClick(station)}
               />
+              {/* Station label */}
               <text
                 x={station.x}
-                y={station.y - 15}
+                y={station.y - 20}
                 textAnchor="middle"
-                className="text-xs fill-gray-800 font-semibold pointer-events-none"
-                style={{ fontSize: Math.max(8, 12 * (800 / viewBox.width)) }}
+                className="text-sm fill-gray-800 font-semibold pointer-events-none"
+                style={{ fontSize: Math.max(10, 14 * (800 / viewBox.width)) }}
               >
                 {station.name}
               </text>
               <text
                 x={station.x}
-                y={station.y + 25}
+                y={station.y + 30}
                 textAnchor="middle"
                 className="text-xs fill-gray-600 pointer-events-none"
-                style={{ fontSize: Math.max(6, 10 * (800 / viewBox.width)) }}
+                style={{ fontSize: Math.max(8, 11 * (800 / viewBox.width)) }}
               >
                 {station.city}
               </text>
@@ -377,11 +545,116 @@ function Dashboard() {
         </svg>
       </div>
       
+      {/* Status Bar */}
       <div className="bg-white px-6 py-2 text-xs text-gray-600 border-t border-gray-200 shadow-sm">
         Zoom: {(800 / viewBox.width * 100).toFixed(0)}% | 
         View: ({viewBox.x.toFixed(0)}, {viewBox.y.toFixed(0)}) | 
         Animation: {isAnimating ? 'Running' : 'Paused'}
       </div>
+
+      {/* Station Details Popup */}
+      {showPopup && selectedStation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 max-h-96 overflow-hidden">
+            {/* Popup Header */}
+            <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 flex justify-between items-center">
+              <div>
+                <h3 className="text-lg font-bold">{selectedStation.name}</h3>
+                <p className="text-sm text-blue-100">{selectedStation.city} • {selectedStation.type}</p>
+              </div>
+              <button 
+                onClick={() => setShowPopup(false)}
+                className="text-blue-100 hover:text-white text-2xl font-bold w-8 h-8 flex items-center justify-center rounded hover:bg-blue-500 transition-colors"
+              >
+                ×
+              </button>
+            </div>
+
+            {/* Popup Content */}
+            <div className="p-6 overflow-y-auto max-h-80">
+              {(() => {
+                const { arrivals, departures } = getStationTrains(selectedStation.id);
+                return (
+                  <div className="space-y-4">
+                    {/* Departures */}
+                    <div>
+                      <h4 className="text-md font-semibold text-gray-800 mb-3 flex items-center">
+                        <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
+                        Departures ({departures.length})
+                      </h4>
+                      {departures.length > 0 ? (
+                        <div className="space-y-2">
+                          {departures.map((train, index) => (
+                            <div key={index} className="bg-green-50 p-3 rounded-lg border-l-4 border-green-500">
+                              <div className="text-sm font-medium text-gray-800">To: {train.to}</div>
+                              <div className="text-xs text-gray-600 mt-1">{train.city}</div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-500 italic bg-gray-50 p-3 rounded">No departures scheduled</p>
+                      )}
+                    </div>
+
+                    {/* Arrivals */}
+                    <div>
+                      <h4 className="text-md font-semibold text-gray-800 mb-3 flex items-center">
+                        <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
+                        Arrivals ({arrivals.length})
+                      </h4>
+                      {arrivals.length > 0 ? (
+                        <div className="space-y-2">
+                          {arrivals.map((train, index) => (
+                            <div key={index} className="bg-blue-50 p-3 rounded-lg border-l-4 border-blue-500">
+                              <div className="text-sm font-medium text-gray-800">From: {train.from}</div>
+                              <div className="text-xs text-gray-600 mt-1">{train.city}</div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : (
+                        <p className="text-sm text-gray-500 italic bg-gray-50 p-3 rounded">No arrivals scheduled</p>
+                      )}
+                    </div>
+
+                    {/* Station Stats */}
+                    <div className="bg-gray-100 p-4 rounded-lg">
+                      <h4 className="text-sm font-semibold text-gray-800 mb-3">Station Information</h4>
+                      <div className="grid grid-cols-2 gap-3 text-xs">
+                        <div className="bg-white p-2 rounded">
+                          <span className="text-gray-600">Type:</span>
+                          <span className="ml-1 font-medium text-gray-800">{selectedStation.type}</span>
+                        </div>
+                        <div className="bg-white p-2 rounded">
+                          <span className="text-gray-600">City:</span>
+                          <span className="ml-1 font-medium text-gray-800">{selectedStation.city}</span>
+                        </div>
+                        <div className="bg-white p-2 rounded">
+                          <span className="text-gray-600">Total Routes:</span>
+                          <span className="ml-1 font-medium text-blue-600">{arrivals.length + departures.length}</span>
+                        </div>
+                        <div className="bg-white p-2 rounded">
+                          <span className="text-gray-600">Status:</span>
+                          <span className="ml-1 font-medium text-green-600">Active</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+
+            {/* Popup Footer */}
+            <div className="bg-gray-50 px-6 py-3 flex justify-end border-t">
+              <button 
+                onClick={() => setShowPopup(false)}
+                className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
