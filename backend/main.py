@@ -10,8 +10,7 @@ from contextlib import asynccontextmanager
 from MILP import optimize_train_schedule_milp
 
 origins = [
-    "http://localhost:5500",
-    "http://127.0.0.1:5500"
+    "*"
 ]
 
 load_dotenv()
@@ -121,17 +120,18 @@ def get_stations():
 def get_map_data():
     query = """
     MATCH p=(s1:Station)-[:TRACK]->(s2:Station) 
-    RETURN p LIMIT 25
+    RETURN p LIMIT 10
     """
     with driver.session() as session:
         result = session.run(query)
         data = []
         for record in result:
             res = record.data()
-            data.append([res["p"][0]["name"], res["p"][2]["name"]])
+            data.append(res)
     
     if not data:
         return {"error": "No records found. Please ensure the database is populated."}
+    print(data)
     return {"stations": data}
 
 @app.get("/stations/network")
@@ -389,7 +389,7 @@ def propose_optimized_schedule(schedule: dict):
         "conflicts": conflicts,
         "precedence_decisions": precedence_decisions
     }
-#optimizes schedule for all trains arriving at a dadar around 9:30pm
+
 @app.post("/optimize/station")
 def optimize_full_station_schedule():
     station_code = "DR"
@@ -403,7 +403,8 @@ def optimize_full_station_schedule():
            t.name AS train_name,
            t.priority AS priority,
            collect(s.name) AS stations_in_path,
-           collect(r.arrival) AS arrival_times
+           collect(r.arrival) AS arrival_times,
+           collect(r.departure) AS departure_times
     """
 
     train_data = run_cypher(cypher_query, {"station_code": station_code})
@@ -416,43 +417,48 @@ def optimize_full_station_schedule():
 
     milp_input = {}
     target_minutes = 1290  # 9:30 PM
-
+    res=[]
     for record in train_data:
-        train_id = record.get("train_id")
-        priority = record.get("priority")
-        arrival_time = record.get("arrival_times")[0]
-        print(train_id, priority, arrival_time)
+        res.append(record)
+        # train_id = record.get("train_id")
+        # priority = record.get("priority")
+        # arrival_time = record.get("arrival_times")[0]
+        # print(train_id, priority, arrival_time)
 
-        try:
-            eta = time_to_minutes(arrival_time)
-            print(eta)
-            if abs(eta - target_minutes) <10: #only trains reaching at 930pm +- 10 mins
-                if train_id and eta is not None and priority is not None:
-                    milp_input[train_id] = {
-                        "eta": eta,
-                        "priority": priority
-                    }
-        except (ValueError, IndexError):
-            continue
+        # try:
+        #     eta = time_to_minutes(arrival_time)
+        #     print(eta)
+        #     if abs(eta - target_minutes) <10: #only trains reaching at 930pm +- 10 mins
+        #         if train_id and eta is not None and priority is not None:
+        #             milp_input[train_id] = {
+        #                 "eta": eta,
+        #                 "priority": priority
+        #             }
+        # except (ValueError, IndexError):
+        #     continue
 
-    if not milp_input:
-        raise HTTPException(
-            status_code=500,
-            detail="Failed to find arrival times for all trains at the specified station."
-        )
+    # if not milp_input:
+    #     raise HTTPException(
+    #         status_code=500,
+    #         detail="Failed to find arrival times for all trains at the specified station."
+    #     )
 
-    optimized_times, precedence_decisions = optimize_train_schedule_milp(milp_input)
+    # optimized_times, precedence_decisions = optimize_train_schedule_milp(milp_input)
 
-    if not optimized_times:
-        raise HTTPException(
-            status_code=500,
-            detail="MILP mein gadbad."
-        )
+    # if not optimized_times:
+    #     raise HTTPException(
+    #         status_code=500,
+    #         detail="MILP mein gadbad."
+    #     )
 
+    # return {
+    #     "status": "ok",
+    #     "optimized_schedule": optimized_times,
+    #     "precedence_decisions": precedence_decisions
+    # }
     return {
         "status": "ok",
-        "optimized_schedule": optimized_times,
-        "precedence_decisions": precedence_decisions
+        "trains": res,
     }
 
 @app.get("/health")

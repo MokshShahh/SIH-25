@@ -1,19 +1,20 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ZoomIn, ZoomOut, Home, Play, Pause } from 'lucide-react';
 import { NavLink } from 'react-router-dom';
+import axios from 'axios';
 
 // Sample data 
-const sampleData = [
-  {'p': [{'city': 'Mumbai', 'name': 'Mumbai Central', 'type': 'Interstate'}, 'CONNECTS_TO', {'city': 'Surat', 'name': 'Surat', 'type': 'Interstate'}]},
-  {'p': [{'city': 'Mumbai', 'name': 'Mumbai Central', 'type': 'Interstate'}, 'CONNECTS_TO', {'city': 'Mumbai', 'name': 'Dadar', 'type': 'Terminal'}]},
-  {'p': [{'city': 'Delhi', 'name': 'New Delhi', 'type': 'Interstate'}, 'CONNECTS_TO', {'city': 'Bhopal', 'name': 'Bhopal Junction', 'type': 'Interstate'}]},
-  {'p': [{'city': 'Pune', 'name': 'Pune Junction', 'type': 'Interstate'}, 'CONNECTS_TO', {'city': 'Mumbai', 'name': 'Mumbai Central', 'type': 'Interstate'}]},
-  {'p': [{'city': 'Surat', 'name': 'Surat', 'type': 'Interstate'}, 'CONNECTS_TO', {'city': 'Delhi', 'name': 'New Delhi', 'type': 'Interstate'}]},
-  {'p': [{'city': 'Bhopal', 'name': 'Bhopal Junction', 'type': 'Interstate'}, 'CONNECTS_TO', {'city': 'Pune', 'name': 'Pune Junction', 'type': 'Interstate'}]},
-  {'p': [{'city': 'Mumbai', 'name': 'Dadar', 'type': 'Terminal'}, 'CONNECTS_TO', {'city': 'Mumbai', 'name': 'Kalyan Junction', 'type': 'Local'}]},
-  {'p': [{'city': 'Mumbai', 'name': 'Thane', 'type': 'Local'}, 'CONNECTS_TO', {'city': 'Mumbai', 'name': 'Mumbai Central', 'type': 'Interstate'}]},
-  {'p': [{'city': 'Mumbai', 'name': 'Kalyan Junction', 'type': 'Local'}, 'CONNECTS_TO', {'city': 'Mumbai', 'name': 'Thane', 'type': 'Local'}]}
-];
+// const sampleData = [
+//   {'p': [{'city': 'Mumbai', 'name': 'Mumbai Central', 'type': 'Interstate'}, 'CONNECTS_TO', {'city': 'Surat', 'name': 'Surat', 'type': 'Interstate'}]},
+//   {'p': [{'city': 'Mumbai', 'name': 'Mumbai Central', 'type': 'Interstate'}, 'CONNECTS_TO', {'city': 'Mumbai', 'name': 'Dadar', 'type': 'Terminal'}]},
+//   {'p': [{'city': 'Delhi', 'name': 'New Delhi', 'type': 'Interstate'}, 'CONNECTS_TO', {'city': 'Bhopal', 'name': 'Bhopal Junction', 'type': 'Interstate'}]},
+//   {'p': [{'city': 'Pune', 'name': 'Pune Junction', 'type': 'Interstate'}, 'CONNECTS_TO', {'city': 'Mumbai', 'name': 'Mumbai Central', 'type': 'Interstate'}]},
+//   {'p': [{'city': 'Surat', 'name': 'Surat', 'type': 'Interstate'}, 'CONNECTS_TO', {'city': 'Delhi', 'name': 'New Delhi', 'type': 'Interstate'}]},
+//   {'p': [{'city': 'Bhopal', 'name': 'Bhopal Junction', 'type': 'Interstate'}, 'CONNECTS_TO', {'city': 'Pune', 'name': 'Pune Junction', 'type': 'Interstate'}]},
+//   {'p': [{'city': 'Mumbai', 'name': 'Dadar', 'type': 'Terminal'}, 'CONNECTS_TO', {'city': 'Mumbai', 'name': 'Kalyan Junction', 'type': 'Local'}]},
+//   {'p': [{'city': 'Mumbai', 'name': 'Thane', 'type': 'Local'}, 'CONNECTS_TO', {'city': 'Mumbai', 'name': 'Mumbai Central', 'type': 'Interstate'}]},
+//   {'p': [{'city': 'Mumbai', 'name': 'Kalyan Junction', 'type': 'Local'}, 'CONNECTS_TO', {'city': 'Mumbai', 'name': 'Thane', 'type': 'Local'}]}
+// ];
 
 function Dashboard() {
   const svgRef = useRef(null);
@@ -41,6 +42,7 @@ function Dashboard() {
         const [origin, relation, destination] = item.p;
         
         if (relation === 'CONNECTS_TO' || relation === 'TRACK') {
+          console.log(origin, destination);
           const originKey = `${origin.city}-${origin.name}`;
           const destKey = `${destination.city}-${destination.name}`;
           
@@ -173,20 +175,17 @@ function Dashboard() {
 
   // Handle backend data fetching
   useEffect(() => {
-    // Comment out the API call for now since axios is not imported
-    // const backend_url = "http://127.0.0.1:8000"
-    // axios.get(`${backend_url}/stations/map`)
-    //   .then(response => {
-    //     setFetchedData(response.data.stations);
-    //     setIsLoading(false);
-    //   })
-    //   .catch(error => {
-    //     console.error('Error fetching data:', error);
-    //     setIsLoading(false);
-    //   });
+    const backend_url = "http://127.0.0.1:8000"
+    axios.get(`${backend_url}/stations/map`)
+      .then(response => {
+        setFetchedData(response.data.stations);
+        setIsLoading(false);
+      })
+      .catch(error => {
+        console.error('Error fetching data:', error);
+        setIsLoading(false);
+      });
     
-    // Use sample data for now
-    setFetchedData(sampleData);
     setIsLoading(false);
   }, []);
 
@@ -554,7 +553,7 @@ function Dashboard() {
 
       {/* Station Details Popup */}
       {showPopup && selectedStation && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/45  flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 max-h-96 overflow-hidden">
             {/* Popup Header */}
             <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 flex justify-between items-center">
