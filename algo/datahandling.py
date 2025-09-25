@@ -3,7 +3,6 @@ import yaml, json, os
 import random
 from dotenv import load_dotenv
 
-# Your existing functions
 load_dotenv()
 uri = os.getenv("AURA_URI")
 user = os.getenv("AURA_USER")
@@ -23,199 +22,169 @@ PRIORITY_MAP = {
     "Luxury Tourist": 10,
     "Other": 1
 }
-PLATFORM_MAP = {
-    "CSMT": 18,
-    "LTT": 7,
-    "KYN": 8,
-    "DR": 8,
-    "TNA": 10,
-    "PNVL": 7
+
+MUMBAI_PLATFORM_MAP = {
+    "CSMT": 18, "LTT": 7, "KYN": 8, "DR": 8, "TNA": 10, "PNVL": 7,
+    "BYR": 4, "KR": 6, "GTB": 4, "MLV": 3, "BVI": 4, "VR": 5, "ADH": 3, "JOS": 2, "BND": 4
 }
 
-def generate_features(stations, trains):
-    """
-    Generates estimated features for stations and trains.
-    """
-    station_features = {}
-    for station in stations:
-        station_code = station.get("code")
-        num_platforms = PLATFORM_MAP.get(station_code, 2)
-        station_features[station_code] = {
-            "platforms": num_platforms,
-            "capacity": num_platforms * 10,
-            "location": 0
-        }
-
-    train_features = []
-    for train in trains:
-        train_type = train.get("type", "Other")
-        priority = PRIORITY_MAP.get(train_type, 1)
-
-        train_features.append({
-            "priority": priority,
-            "route": [train.get("origin"), train.get("dest")],
-            "schedule": {
-                "departure_s": train.get("sched_departure_s"),
-                "arrival_s": train.get("sched_arrival_s")
-            }
-        })
-    return station_features, train_features
-
-def add_roadblocks(corridor, num_roadblocks=1, max_duration=3600, min_speed=10, max_speed=40):
-    """
-    Randomly adds roadblocks (speed limit reductions) to the corridor data.
-    """
-    blocks = corridor.get("blocks", [])
-    roadblocks = []
+def export_mumbai_corridor(corridor_yaml="configs/mumbai_corridor.yaml"):
+    mumbai_stations = ["CSMT", "BYR", "DR", "KR", "GTB", "TNA", "KYN", "LTT", "BND", "ADH", "JOS", "MLV", "BVI", "VR", "PNVL"]
     
-    if len(blocks) < num_roadblocks:
-        print("Warning: Not enough blocks to create the requested number of roadblocks.")
-        return roadblocks
-
-    roadblock_blocks = random.sample(blocks, num_roadblocks)
-    
-    for block in roadblock_blocks:
-        new_speed_limit = random.randint(min_speed, max_speed)
-        duration_s = random.randint(600, max_duration)
-        start_time_s = random.randint(0, 1800)
-        
-        roadblock = {
-            "block_name": block["name"],
-            "new_speed_limit": new_speed_limit,
-            "duration_s": duration_s,
-            "start_time_s": start_time_s
-        }
-        roadblocks.append(roadblock)
-        
-        print(f"Roadblock added to {block['name']}: Speed reduced to {new_speed_limit} km/h for {duration_s} seconds starting at {start_time_s}s.")
-    
-    return roadblocks
-
-def export_corridor(station_codes, corridor_yaml="configs/corridor.yaml"):
     with driver.session() as session:
+        # Simplified query - only use properties that exist
         q = """
         MATCH (s1:Station)-[t:TRACK]->(s2:Station)
         WHERE s1.code IN $codes AND s2.code IN $codes
         RETURN s1.code AS from_code, s1.name AS from_name,
                s2.code AS to_code, s2.name AS to_name,
-               t.distance AS dist
+               coalesce(t.distance, 8.0) AS dist
+        ORDER BY s1.code, s2.code
         """
-        result = session.run(q, codes=station_codes)
+        result = session.run(q, codes=mumbai_stations)
+        records = list(result)
+
+        if not records:
+            print("No tracks found. Creating fallback network...")
+            return create_fallback_corridor(corridor_yaml)
 
         stations = {}
         blocks = []
-        for r in result:
-            stations[r["from_code"]] = {"code": r["from_code"], "name": r["from_name"], "platforms": 2}
-            stations[r["to_code"]] = {"code": r["to_code"], "name": r["to_name"], "platforms": 2}
+        
+        for r in records:
+            from_code = r["from_code"]
+            to_code = r["to_code"]
+            
+            stations[from_code] = {"code": from_code, "name": r["from_name"], "platforms": MUMBAI_PLATFORM_MAP.get(from_code, 3)}
+            stations[to_code] = {"code": to_code, "name": r["to_name"], "platforms": MUMBAI_PLATFORM_MAP.get(to_code, 3)}
+            
             blocks.append({
-                "name": f"{r['from_code']}-{r['to_code']}",
-                "from": r["from_code"],
-                "to": r["to_code"],
+                "name": f"{from_code}-{to_code}",
+                "from": from_code,
+                "to": to_code,
                 "length_km": r["dist"],
-                "single_track": True,
-                "speed_limit": 80
+                "single_track": False,
+                "speed_limit": 100
             })
 
         corridor = {
             "stations": list(stations.values()),
             "blocks": blocks,
-            "headway_s": 180,
+            "headway_s": 120
         }
-        
-        corridor["roadblocks"] = add_roadblocks(corridor, num_roadblocks=2)
 
         os.makedirs(os.path.dirname(corridor_yaml), exist_ok=True)
         with open(corridor_yaml, "w") as f:
-            yaml.dump(corridor, f)
+            yaml.dump(corridor, f, default_flow_style=False)
 
-        print(f"Corridor saved to {corridor_yaml}")
+        print(f"Mumbai corridor with {len(stations)} stations saved to {corridor_yaml}")
+        return corridor
 
-def generate_random_route_blocks(all_stations, origin, dest):
-    """
-    Generates a list of route blocks between origin and dest from a list of all stations.
-    """
+def create_fallback_corridor(corridor_yaml):
+    """Create a basic Mumbai corridor when Neo4j data is limited"""
+    stations = [
+        {"code": "CSMT", "name": "Mumbai CSM Terminus", "platforms": 18},
+        {"code": "DR", "name": "Dadar", "platforms": 8},
+        {"code": "KR", "name": "Kurla", "platforms": 6},
+        {"code": "TNA", "name": "Thane", "platforms": 10},
+        {"code": "KYN", "name": "Kalyan", "platforms": 8}
+    ]
+    
+    blocks = [
+        {"name": "CSMT-DR", "from": "CSMT", "to": "DR", "length_km": 12, "single_track": False, "speed_limit": 100},
+        {"name": "DR-KR", "from": "DR", "to": "KR", "length_km": 8, "single_track": False, "speed_limit": 100},
+        {"name": "KR-TNA", "from": "KR", "to": "TNA", "length_km": 15, "single_track": False, "speed_limit": 100},
+        {"name": "TNA-KYN", "from": "TNA", "to": "KYN", "length_km": 12, "single_track": False, "speed_limit": 100}
+    ]
+    
+    corridor = {"stations": stations, "blocks": blocks, "headway_s": 120}
+    
+    os.makedirs(os.path.dirname(corridor_yaml), exist_ok=True)
+    with open(corridor_yaml, "w") as f:
+        yaml.dump(corridor, f, default_flow_style=False)
+    
+    print(f"Fallback corridor created with {len(stations)} stations")
+    return corridor
+
+def export_mumbai_scenarios(out_dir="data/scenarios"):
+    mumbai_stations = ["CSMT", "DR", "KR", "TNA", "KYN"]
+    
+    # Create synthetic Mumbai suburban trains since Neo4j query returned 0
+    synthetic_trains = [
+        {"origin": "CSMT", "dest": "KYN", "type": "Other"},
+        {"origin": "KYN", "dest": "CSMT", "type": "Other"},
+        {"origin": "CSMT", "dest": "TNA", "type": "Express"},
+        {"origin": "TNA", "dest": "CSMT", "type": "Express"},
+        {"origin": "DR", "dest": "KYN", "type": "Other"},
+        {"origin": "KYN", "dest": "DR", "type": "Other"},
+        {"origin": "CSMT", "dest": "DR", "type": "Other"},
+        {"origin": "DR", "dest": "CSMT", "type": "Other"},
+    ]
+    
+    scenario = []
+    base_time = 6 * 3600  # 6 AM
+    
+    for idx, train_data in enumerate(synthetic_trains):
+        origin = train_data["origin"]
+        dest = train_data["dest"]
+        train_type = train_data["type"]
+        
+        # Generate route blocks
+        route_blocks = generate_simple_route(mumbai_stations, origin, dest)
+        if not route_blocks:
+            continue
+            
+        departure_time = base_time + idx * 300  # 5-minute intervals
+        travel_duration = len(route_blocks) * 600  # 10 minutes per block
+        
+        scenario.append({
+            "tid": f"T{1000 + idx}",
+            "origin": origin,
+            "dest": dest,
+            "route_blocks": route_blocks,
+            "sched_departure_s": departure_time,
+            "sched_arrival_s": departure_time + travel_duration,
+            "priority": PRIORITY_MAP.get(train_type, 1),
+            "type": train_type,
+            "dwell_rules": {}
+        })
+
+    os.makedirs(out_dir, exist_ok=True)
+    out_path = os.path.join(out_dir, "mumbai_scenario.json")
+    with open(out_path, "w") as f:
+        json.dump(scenario, f, indent=2)
+
+    print(f"Mumbai scenario with {len(scenario)} trains saved to {out_path}")
+    return scenario
+
+def generate_simple_route(all_stations, origin, dest):
+    """Generate simple route between two stations"""
     try:
         start_idx = all_stations.index(origin)
         end_idx = all_stations.index(dest)
     except ValueError:
-        print(f"Warning: Origin {origin} or Destination {dest} not found in corridor stations.")
         return []
-
-    # Get all stations between origin and destination
-    intermediate_stations = all_stations[min(start_idx, end_idx) + 1 : max(start_idx, end_idx)]
     
-    # Randomly select some intermediate stations to be part of the route
-    num_stops = random.randint(0, len(intermediate_stations))
-    stops = random.sample(intermediate_stations, num_stops)
+    if start_idx == end_idx:
+        return []
     
-    # Combine origin, stops, and destination in correct order
-    full_route_stations = [origin] + sorted(stops, key=lambda s: all_stations.index(s)) + [dest]
-
-    # Convert the station list to a list of 'from-to' blocks
+    if start_idx < end_idx:
+        stations = all_stations[start_idx:end_idx + 1]
+    else:
+        stations = all_stations[end_idx:start_idx + 1]
+        stations.reverse()
+    
     route_blocks = []
-    if len(full_route_stations) > 1:
-        for i in range(len(full_route_stations) - 1):
-            route_blocks.append(f"{full_route_stations[i]}-{full_route_stations[i+1]}")
+    for i in range(len(stations) - 1):
+        route_blocks.append(f"{stations[i]}-{stations[i+1]}")
     
     return route_blocks
 
-def export_scenarios(station_codes, out_dir="data/scenarios"):
-    with driver.session() as session:
-        trains_q = """
-        MATCH (t:Train)
-        WHERE t.source IN $codes OR t.destination IN $codes
-        RETURN t.id AS tid, t.source AS origin, t.destination AS dest,
-               t.type AS type, t.priority AS priority
-        """
-        trains_result = session.run(trains_q, codes=station_codes)
-        trains_data = list(trains_result)
-        
-        scenario = []
-        start_time = 0
-        for idx, tr in enumerate(trains_data):
-            tid = str(tr["tid"])
-            
-            # Generate random route blocks for the train
-            route_blocks = generate_random_route_blocks(station_codes, tr["origin"], tr["dest"])
-
-            scenario.append({
-                "tid": tid,
-                "origin": tr["origin"],
-                "dest": tr["dest"],
-                "route_blocks": route_blocks,
-                "sched_departure_s": start_time + idx*300,
-                "sched_arrival_s": start_time + (idx+1)*1200,
-                "priority": tr["priority"] or 3,
-                "type": tr["type"] or "Other",
-                "dwell_rules": {}
-            })
-
-        os.makedirs(out_dir, exist_ok=True)
-        out_path = os.path.join(out_dir, "scenario1.json")
-        with open(out_path, "w") as f:
-            json.dump(scenario, f, indent=2)
-
-        print(f"Scenario saved to {out_path}")
-
 if __name__ == "__main__":
-    corridor_stations = [
-    "SWV", "MAO", "DSJ", "AWB", "LKO", "SVDK", "SSA", "RJPB", "PNBE", "URK",
-    "CSMT", "LTT", "AJNI", "KRMI", "NGP", "PUNE", "MAJN", "JBP", "BDTS", "ATT",
-    "SRC", "REWA", "BPL", "TVC", "PLNI", "POY", "HYB", "JP", "RJT", "MAS",
-    "HTE", "KOAA", "PURI", "ASN", "DHN", "KDS", "SZE", "PLJE", "JSME", "ANVT",
-    "DLI", "NZM", "BKN", "HW", "HMH", "SGNR", "SDLP", "SOG", "PBC", "MKN",
-    "JU", "MTD", "RTGH", "CUR", "SRE", "UMB", "PTK", "JAT", "GKP", "BNY",
-    "CPR", "LJN", "BST", "CPA", "FBD", "BC", "LKU", "JMP", "SHC", "JLWC",
-    "KOTA", "NLP", "MZS", "GHY", "SCL", "NJP", "KNE", "KIR", "SGUJ", "RNY",
-    "RPAN", "MS", "TEN", "ERS", "PDY", "QLN", "KCVL", "CGL", "MDU", "CBE",
-    "MKM", "BWT", "YPR", "PVR", "VSKP", "BGM", "HSRA", "WFD", "BYPL", "DHL",
-    "KRBA", "BSP", "PGTN", "KIK", "NCR", "UBL", "BJP", "RXL", "SC", "DBG",
-    "KCG", "TPTY", "COA", "BZA", "CCT", "KRMR", "NS", "NSL", "TATA", "ADB",
-    "BIDR", "NBQ", "KJM", "NED", "NZB", "RU", "KGP", "JGM", "MDN", "BLS",
-    "SHM", "BQA", "VSU", "CBSA", "CKP", "SBP", "BAND", "KRDL", "BPQ", "CAF",
-    "RNC", "HWH", "DURG", "BCT", "NDLS", "GIMB", "AII", "UDZ", "SNSI", "DR",
-    "BBS", "KOP", "BSL", "SUR", "MYS", "G", "MRJ", "ADI", "AMH", "ASR",
-    "SA", "FD", "BSB", "KZJ", "BTI", "PTA", "PJP", "KK", "PAY"
-   ]
-    export_corridor(corridor_stations)
-    export_scenarios(corridor_stations)
+    print("Exporting Mumbai suburban railway corridor...")
+    corridor = export_mumbai_corridor()
+    
+    print("Generating Mumbai train scenarios...")
+    scenarios = export_mumbai_scenarios()
+    
+    print(f"Mumbai prototype ready with {len(corridor['stations'])} stations and {len(scenarios)} trains")
