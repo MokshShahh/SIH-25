@@ -1,0 +1,46 @@
+{
+    "nodes": [
+        {
+            "id": 0,
+            "type": "station",
+            "platforms": [
+                "P1",
+                "P2"
+            ],
+            "signals": [
+                "S1"
+            ]
+        },
+        {
+            "id": 1,
+            "type": "station",
+            "platforms": [
+                "P1"
+            ],
+            "signals": [
+                "S2"
+            ]
+        }
+    ],
+    "edges": [
+        {
+            "from": 0,
+            "to": 1,
+            "length": 10,
+            "max_speed": 50,
+            "signal_blocks": [
+                "B1"
+            ]
+        }
+    ],
+    "trains": [
+        {
+            "number": "12345",
+            "name": "Rajdhani Express",
+            "type": "Rajdhani",
+            "scheduled_arrival": "2023-09-24T08:00:00",
+            "scheduled_departure": "2023-09-24T08:15:00",
+            "platform_requirement": "P1"
+        }
+    ]
+}

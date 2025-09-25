@@ -1,0 +1,112 @@
+[
+  {
+    "tid": "107",
+    "origin": "SWV",
+    "dest": "MAO",
+    "route_blocks": [],
+    "sched_departure_s": 0,
+    "sched_arrival_s": 1200,
+    "priority": 5,
+    "type": "Other",
+    "dwell_rules": {}
+  },
+  {
+    "tid": "108",
+    "origin": "MAO",
+    "dest": "SWV",
+    "route_blocks": [],
+    "sched_departure_s": 300,
+    "sched_arrival_s": 2400,
+    "priority": 5,
+    "type": "Other",
+    "dwell_rules": {}
+  },
+  {
+    "tid": "128",
+    "origin": "MAO",
+    "dest": "KOP",
+    "route_blocks": [],
+    "sched_departure_s": 600,
+    "sched_arrival_s": 3600,
+    "priority": 8,
+    "type": "Express",
+    "dwell_rules": {}
+  },
+  {
+    "tid": "1045",
+    "origin": "LTT",
+    "dest": "KRMI",
+    "route_blocks": [],
+    "sched_departure_s": 900,
+    "sched_arrival_s": 4800,
+    "priority": 6,
+    "type": "Special",
+    "dwell_rules": {}
+  },
+  {
+    "tid": "1119",
+    "origin": "AJNI",
+    "dest": "KRMI",
+    "route_blocks": [],
+    "sched_departure_s": 1200,
+    "sched_arrival_s": 6000,
+    "priority": 5,
+    "type": "Other",
+    "dwell_rules": {}
+  },
+  {
+    "tid": "1120",
+    "origin": "KRMI",
+    "dest": "AJNI",
+    "route_blocks": [],
+    "sched_departure_s": 1500,
+    "sched_arrival_s": 7200,
+    "priority": 5,
+    "type": "Other",
+    "dwell_rules": {}
+  },
+  {
+    "tid": "1122",
+    "origin": "KRMI",
+    "dest": "CSMT",
+    "route_blocks": [],
+    "sched_departure_s": 1800,
+    "sched_arrival_s": 8400,
+    "priority": 5,
+    "type": "Other",
+    "dwell_rules": {}
+  },
+  {
+    "tid": "1196",
+    "origin": "NGP",
+    "dest": "KRMI",
+    "route_blocks": [],
+    "sched_departure_s": 2100,
+    "sched_arrival_s": 9600,
+    "priority": 6,
+    "type": "Special",
+    "dwell_rules": {}
+  },
+  {
+    "tid": "2025",
+    "origin": "CSMT",
+    "dest": "KRMI",
+    "route_blocks": [],
+    "sched_departure_s": 2400,
+    "sched_arrival_s": 10800,
+    "priority": 9,
+    "type": "Superfast",
+    "dwell_rules": {}
+  },
+  {
+    "tid": "2026",
+    "origin": "KRMI",
+    "dest": "CSMT",
+    "route_blocks": [],
+    "sched_departure_s": 2700,
+    "sched_arrival_s": 12000,
+    "priority": 9,
+    "type": "Superfast",
+    "dwell_rules": {}
+  }
+]
