@@ -4,6 +4,9 @@ from tensorflow.keras import layers
 from spektral.layers import GINConv, GlobalSumPool
 from dataclasses import dataclass, field
 from typing import List, Tuple, Dict
+from pathlib import Path
+import yaml
+import json
 
 # 1) Railway Infrastructure (unchanged)
 @dataclass
@@ -22,26 +25,99 @@ class Train:
     tid: str
     origin: str
     dest: str
-    route_blocks: List[str]            
+    route_blocks: List[str]
     sched_departure_s: int
     sched_arrival_s: int
-    priority: int                      
-    dwell_rules: Dict[str, int] = field(default_factory=dict)  
+    priority: int
+    train_type: str = "Other"
+    dwell_rules: Dict[str, int] = field(default_factory=dict)
 
-def build_micro_corridor():
+def get_project_root():
+    """Get the path to project root directory (parent of algo folder)"""
+    current_file = Path(__file__)  
+    algo_dir = current_file.parent  
+    project_root = algo_dir.parent  
+    return project_root
+ 
+def load_corridor(config_name="corridor.yaml"):
+    """Load corridor configuration from project configs folder"""
+    project_root = get_project_root()
+    config_path = project_root / "configs" / config_name
+    
+    with open(config_path, "r") as f:
+        cfg = yaml.safe_load(f)
+
     stations = {
-        "A": Station("A", platforms=2),
-        "B": Station("B", platforms=2),  
-        "C": Station("C", platforms=2),
+        s["name"]: Station(s["name"], platforms=s.get("platforms", 2))
+        for s in cfg["stations"]
     }
     blocks = {
-        "A-B": Block("A-B", length_km=3.0, single_track=True),
-        "B-C": Block("B-C", length_km=4.0, single_track=True),
+        b["name"]: Block(b["name"], b["length_km"], single_track=b.get("single_track", True))
+        for b in cfg["blocks"]
     }
-    speed_kmph = {"A-B": 70.0, "B-C": 60.0}
-    headway_s = 180  
-    return stations, blocks, speed_kmph, headway_s
+    speed = {b["name"]: b.get("speed_kmph", 60.0) for b in cfg["blocks"]}
+    headway = cfg.get("headway_s", 180)
+    return stations, blocks, speed, headway
 
+
+def load_corridor(path="configs/corridor.yaml"):
+    with open(path, "r") as f:
+        cfg = yaml.safe_load(f)
+
+    stations = {
+        s["name"]: Station(s["name"], platforms=s.get("platforms", 2))
+        for s in cfg["stations"]
+    }
+    blocks = {
+        b["name"]: Block(b["name"], b["length_km"], single_track=b["single_track"])
+        for b in cfg["blocks"]
+    }
+    speed = {b["name"]: b.get("speed_kmph", 60.0) for b in cfg["blocks"]}
+    headway = cfg.get("headway_s", 180)
+    return stations, blocks, speed, headway
+
+def load_scenarios(path="data/scenarios/scenario1.json"):
+    """Load train scenarios from JSON file"""
+    project_root = get_project_root()
+    scenario_path = project_root / path
+    
+    with open(scenario_path, "r") as f:
+        train_list = json.load(f)
+    
+    # Convert flat list of trains into a single scenario
+    trains = []
+    for train_data in train_list:
+        trains.append(Train(
+            tid=train_data["tid"],
+            origin=train_data["origin"],
+            dest=train_data["dest"],  # matches your JSON structure
+            route_blocks=train_data["route_blocks"],
+            sched_departure_s=train_data["sched_departure_s"],
+            sched_arrival_s=train_data["sched_arrival_s"],
+            priority=train_data["priority"],
+            train_type=train_data.get("type", "Other"),  # added train type
+            dwell_rules=train_data.get("dwell_rules", {})
+        ))
+    
+    # Return list containing single scenario (list of trains)
+    return [trains]
+
+def load_environment():
+    """Load the complete environment from config files"""
+    project_root = get_project_root()
+    config_path = project_root / "configs" / "corridor.yaml"
+    scenario_path = project_root / "data" / "scenarios" / "scenario1.json"
+    
+    if not config_path.exists():
+        raise FileNotFoundError(f"Railway configuration file not found at {config_path}. Please create the config file.")
+        
+    if not scenario_path.exists():
+        raise FileNotFoundError(f"Scenario file not found at {scenario_path}. Please create the scenario file.")
+    
+    stations, blocks, speed, headway = load_corridor()
+    scenarios = load_scenarios()
+    
+    return stations, blocks, speed, headway, scenarios
 def make_scenarios():
     base = [
         Train("E101", "A", "C", ["A-B","B-C"],  0,  35*60, priority=3, dwell_rules={"B":60}),
@@ -144,63 +220,67 @@ class RailEnvGNN:
         return self._obs_graph(), self._mask()
 
     def _obs_graph(self):
-        """Return graph-structured observation: (node_features, adjacency, global_features)"""
-        # Node features [N, d_node]
-        node_feats = np.zeros((self.N, self.d_node), dtype=np.float32)
-        
-        for i, node_name in enumerate(self.node_names):
-            if node_name in self.stations:
-                # Station node features
-                station = self.stations[node_name]
-                node_feats[i, 0] = 1.0  # is_station
-                node_feats[i, 1] = station.platforms / 5.0  # normalized platforms
-                
-                # Count trains at/near this station
-                trains_here = sum(1 for tr in self.trains 
-                                if not tr["done"] and node_name in tr["route"])
-                node_feats[i, 2] = trains_here / max(1, len(self.trains))
-                
-            elif node_name in self.blocks:
-                # Block/track node features
-                block = self.blocks[node_name]
-                node_feats[i, 0] = 0.0  # not a station
-                node_feats[i, 1] = block.length_km / 10.0  # normalized length
-                
-                # Occupancy
-                occupied = 1.0 if self.occ[node_name]["free_at"] > self.t else 0.0
-                node_feats[i, 2] = occupied
-                
-                # Time until free
-                free_in = max(0, self.occ[node_name]["free_at"] - self.t) / 300.0
-                node_feats[i, 3] = min(free_in, 2.0)  # clamp at 10min
-                
-                # Speed limit
-                node_feats[i, 4] = self.speed_kmph.get(node_name, 50.0) / 100.0
-                
-                # Headway constraint
-                time_since_exit = (self.t - self.last_exit[node_name]) / 300.0
-                node_feats[i, 5] = min(time_since_exit, 2.0)
-        
-        # Get candidate trains for priority encoding
-        cands = self._candidates()
-        for j, (tr, blk) in enumerate(cands[:2]):  # only first 2 candidates
-            if blk in self.node_to_idx:
-                blk_idx = self.node_to_idx[blk]
-                node_feats[blk_idx, 6] = tr["priority"] / 3.0  # normalized priority
-                node_feats[blk_idx, 7] = min((self.t - tr["ready_time"]) / 300.0, 2.0)  # lateness
-        
-        # Global features [d_global]
-        finished = sum(1 for tr in self.trains if tr["done"]) / max(1, len(self.trains))
-        time_norm = self.t / 3600.0
-        sum_delay = self._sum_delay_min() / 30.0
-        max_delay = self._max_delay_min() / 30.0
-        congestion = len(cands) / self.K
-        avg_priority = np.mean([tr["priority"] for tr in self.trains if not tr["done"]], initial=2.0) / 3.0
-        
-        global_feats = np.array([finished, time_norm, sum_delay, max_delay, congestion, avg_priority], 
-                               dtype=np.float32)
-        
-        return node_feats, self.adj_matrix, global_feats
+      """Return graph-structured observation: (node_features, adjacency, global_features)"""
+      # Node features [N, d_node]
+      node_feats = np.zeros((self.N, self.d_node), dtype=np.float32)
+
+      for i, node_name in enumerate(self.node_names):
+        if node_name in self.stations:
+            # Station node features
+            station = self.stations[node_name]
+            node_feats[i, 0] = 1.0  # is_station
+            node_feats[i, 1] = station.platforms / 5.0  # normalized platforms
+            
+            # Count trains at/near this station
+            trains_here = sum(1 for tr in self.trains 
+                             if not tr["done"] and node_name in tr["route"])
+            node_feats[i, 2] = trains_here / max(1, len(self.trains))
+            
+        elif node_name in self.blocks:
+            # Block/track node features
+            block = self.blocks[node_name]
+            node_feats[i, 0] = 0.0  # not a station
+            node_feats[i, 1] = block.length_km / 10.0  # normalized length
+            
+            # Occupancy
+            occupied = 1.0 if self.occ[node_name]["free_at"] > self.t else 0.0
+            node_feats[i, 2] = occupied
+            
+            # Time until free
+            free_in = max(0, self.occ[node_name]["free_at"] - self.t) / 300.0
+            node_feats[i, 3] = min(free_in, 2.0)  # clamp at 10min
+            
+            # Speed limit
+            node_feats[i, 4] = self.speed_kmph.get(node_name, 50.0) / 100.0
+            
+            # Headway constraint
+            time_since_exit = (self.t - self.last_exit[node_name]) / 300.0
+            node_feats[i, 5] = min(time_since_exit, 2.0)
+    
+    # Get candidate trains for priority encoding
+      cands = self._candidates()
+      for j, (tr, blk) in enumerate(cands[:2]):  # only first 2 candidates
+        if blk in self.node_to_idx:
+            blk_idx = self.node_to_idx[blk]
+            node_feats[blk_idx, 6] = tr["priority"] / 3.0  # normalized priority
+            node_feats[blk_idx, 7] = min((self.t - tr["ready_time"]) / 300.0, 2.0)  # lateness
+    
+    # Global features [d_global]
+      finished = sum(1 for tr in self.trains if tr["done"]) / max(1, len(self.trains))
+      time_norm = self.t / 3600.0
+      sum_delay = self._sum_delay_min() / 30.0
+      max_delay = self._max_delay_min() / 30.0
+      congestion = len(cands) / self.K
+      avg_priority = np.mean([tr["priority"] for tr in self.trains if not tr["done"]], initial=2.0) / 3.0
+    
+      global_feats = np.array([finished, time_norm, sum_delay, max_delay, congestion, avg_priority], 
+                            dtype=np.float32)
+
+    # Convert the dense NumPy array to a sparse TensorFlow tensor.
+    # This is required by the GINConv layer, which expects a 2D adjacency matrix.
+      sparse_adj_matrix = tf.sparse.from_dense(self.adj_matrix)
+
+      return node_feats, sparse_adj_matrix, global_feats
 
     # Keep all the helper methods from original RailEnv
     def _block_speed_s(self, block_name):
@@ -312,15 +392,16 @@ class RailEnvGNN:
         return self._obs_graph(), reward, done, {}, self._mask()
 
 # 3) GNN-Enhanced Dueling DQN
+# 3) GNN-Enhanced Dueling DQN
 class DuelingGNNDQN(tf.keras.Model):
     def __init__(self, action_dim, hidden=64, glob_hidden=128):
         super().__init__()
         # GNN backbone
-        self.gnn1 = GINConv(mlp=tf.keras.Sequential([
+        self.gnn1 = GINConv(channels=hidden, mlp=tf.keras.Sequential([
             layers.Dense(hidden, activation="relu"),
             layers.Dense(hidden, activation="relu")
         ]))
-        self.gnn2 = GINConv(mlp=tf.keras.Sequential([
+        self.gnn2 = GINConv(channels=hidden, mlp=tf.keras.Sequential([
             layers.Dense(hidden, activation="relu"),
             layers.Dense(hidden, activation="relu")
         ]))
@@ -344,22 +425,22 @@ class DuelingGNNDQN(tf.keras.Model):
         ])
 
     def call(self, inputs, training=False):
-        x, a, u = inputs   # x:[B,N,d], a:[B,N,N], u:[B,dg]
+        x, a, u = inputs
         
         # GNN processing
         h = self.gnn1([x, a])
         h = self.gnn2([h, a])
-        g = self.pool(h)          # [B, hidden] - global graph representation
+        g = self.pool(h)
         
         # Fuse graph embedding with global features
         z = tf.concat([g, u], axis=-1)
         z = self.fuse(z)
         
         # Dueling streams
-        v = self.V(z)             # [B,1] - state value
-        a_stream = self.A(z)      # [B,A] - action advantages
+        v = self.V(z)
+        a_stream = self.A(z)
         a_stream = a_stream - tf.reduce_mean(a_stream, axis=1, keepdims=True)
-        q = v + a_stream          # [B,A] - Q-values
+        q = v + a_stream
         return q
 
 # 4) Graph-Based Replay Buffer
@@ -413,8 +494,9 @@ class ReplayGNN:
 
 # 5) Training Loop with GNN
 def train_gnn(seed=0):
-    stations, blocks, speed, headway = build_micro_corridor()
-    scenarios = make_scenarios()
+    stations, blocks, speed, headway, scenarios = load_environment()
+    env = RailEnvGNN(stations, blocks, speed, headway, tick_sec=10)
+    
     env = RailEnvGNN(stations, blocks, speed, headway, tick_sec=10)
 
     action_dim = env.action_dim
@@ -423,7 +505,9 @@ def train_gnn(seed=0):
     
     # Initialize networks with dummy data
     dummy_x = np.zeros((1, env.N, env.d_node), np.float32)
-    dummy_a = np.zeros((1, env.N, env.N), np.float32) 
+    # The fix: Create a sparse tensor for the dummy adjacency matrix
+    dummy_a = tf.sparse.from_dense(np.zeros((env.N, env.N), np.float32))
+
     dummy_u = np.zeros((1, env.d_global), np.float32)
     _ = online((dummy_x, dummy_a, dummy_u))
     _ = target((dummy_x, dummy_a, dummy_u))
@@ -434,7 +518,7 @@ def train_gnn(seed=0):
     batch = 64  # Smaller batch for GNN
     target_update = 1000
     buffer = ReplayGNN(cap=50_000, N=env.N, d_node=env.d_node, 
-                      d_global=env.d_global, action_dim=action_dim)
+                       d_global=env.d_global, action_dim=action_dim)
 
     eps_start, eps_end, eps_decay_steps = 0.2, 0.02, 50_000
     global_step = 0
@@ -479,7 +563,7 @@ def train_gnn(seed=0):
                 bx, ba, bu, b_act, b_r, bx2, ba2, bu2, b_done, b_mask2 = buffer.sample(batch)
                 
                 with tf.GradientTape() as tape:
-                    q = online((bx, ba, bu))                        # [B,A]
+                    q = online((bx, ba, bu))
                     qa = tf.gather(q, b_act[:,None], batch_dims=1)[:,0]
                     
                     # Double DQN target with masking

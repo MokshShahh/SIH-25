@@ -1,0 +1,48 @@
+blocks:
+- from: THVM
+  length_km: 17
+  name: THVM-KRMI
+  single_track: true
+  speed_limit: 80
+  to: KRMI
+- from: THVM
+  length_km: 46
+  name: THVM-MAO
+  single_track: true
+  speed_limit: 80
+  to: MAO
+- from: KRMI
+  length_km: 18
+  name: KRMI-THVM
+  single_track: true
+  speed_limit: 80
+  to: THVM
+- from: KRMI
+  length_km: 29
+  name: KRMI-MAO
+  single_track: true
+  speed_limit: 80
+  to: MAO
+- from: MAO
+  length_km: 51
+  name: MAO-THVM
+  single_track: true
+  speed_limit: 80
+  to: THVM
+- from: MAO
+  length_km: 33
+  name: MAO-KRMI
+  single_track: true
+  speed_limit: 80
+  to: KRMI
+headway_s: 180
+stations:
+- code: THVM
+  name: THIVIM
+  platforms: 2
+- code: KRMI
+  name: KARMALI
+  platforms: 2
+- code: MAO
+  name: MADGOAN JN.
+  platforms: 2
