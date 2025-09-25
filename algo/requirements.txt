@@ -1,1 +1,9 @@
 networkx
+fastapi
+uvicorn
+neo4j
+python-dotenv
+sqlalchemy 
+pulp
+pyyaml
+numpy
