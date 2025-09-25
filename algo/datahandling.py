@@ -1,8 +1,11 @@
+
+#USING COMBINED APPROACH INSTEAD
 from neo4j import GraphDatabase
 import yaml, json, os
 import random
 from dotenv import load_dotenv
 
+# Your existing functions
 load_dotenv()
 uri = os.getenv("AURA_URI")
 user = os.getenv("AURA_USER")
@@ -67,17 +70,16 @@ def add_roadblocks(corridor, num_roadblocks=1, max_duration=3600, min_speed=10, 
     blocks = corridor.get("blocks", [])
     roadblocks = []
     
-    
     if len(blocks) < num_roadblocks:
         print("Warning: Not enough blocks to create the requested number of roadblocks.")
         return roadblocks
- 
+
     roadblock_blocks = random.sample(blocks, num_roadblocks)
     
     for block in roadblock_blocks:
         new_speed_limit = random.randint(min_speed, max_speed)
         duration_s = random.randint(600, max_duration)
-        start_time_s = random.randint(0, 1800) 
+        start_time_s = random.randint(0, 1800)
         
         roadblock = {
             "block_name": block["name"],
@@ -122,7 +124,6 @@ def export_corridor(station_codes, corridor_yaml="configs/corridor.yaml"):
             "headway_s": 180,
         }
         
-       
         corridor["roadblocks"] = add_roadblocks(corridor, num_roadblocks=2)
 
         os.makedirs(os.path.dirname(corridor_yaml), exist_ok=True)
@@ -130,7 +131,6 @@ def export_corridor(station_codes, corridor_yaml="configs/corridor.yaml"):
             yaml.dump(corridor, f)
 
         print(f"Corridor saved to {corridor_yaml}")
-
 
 def export_scenarios(station_codes, out_dir="data/scenarios"):
     with driver.session() as session:
@@ -164,13 +164,36 @@ def export_scenarios(station_codes, out_dir="data/scenarios"):
 
         print(f"Scenario saved to {out_path}")
 
+# New function to merge roadblock data into scenarios.json
+def add_roadblocks_to_scenarios(corridor_yaml="configs/corridor.yaml", scenarios_json="data/scenarios/scenario1.json"):
+    # Load roadblock data from corridor.yaml
+    with open(corridor_yaml, "r") as f:
+        corridor_data = yaml.safe_load(f)
+        roadblocks = corridor_data.get("roadblocks", [])
+
+    # Load existing train data from scenarios.json
+    with open(scenarios_json, "r") as f:
+        scenario_data = json.load(f)
+    
+    # Create the new dictionary to be saved
+    combined_data = {
+        "train_schedules": scenario_data,
+        "roadblocks": roadblocks
+    }
+    
+    # Overwrite the scenarios.json file with the combined data
+    with open(scenarios_json, "w") as f:
+        json.dump(combined_data, f, indent=2)
+
+    print(f"Roadblock data successfully merged and saved to {scenarios_json}")
+
 
 if __name__ == "__main__":
     
     corridor_stations = ["CSMT", "DR", "TNA","KYN","PNVL","LTT","TNA","THK", "DI", "KOPR","MBQ","ADH","CLA"]
     export_corridor(corridor_stations)
     export_scenarios(corridor_stations)
-    
+    add_roadblocks_to_scenarios()
     
     sample_trains = [
     {"tid": "1011", "origin": "CSMT", "dest": "NGP", "type": "Superfast", "sched_departure_s": 0, "sched_arrival_s": 1200},
