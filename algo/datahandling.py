@@ -9,6 +9,59 @@ password = os.getenv("AURA_PASS")
 
 driver = GraphDatabase.driver(uri, auth=(user, password))
 
+PRIORITY_MAP = {
+    "Superfast": 9,
+    "AC Express": 9,
+    "Express": 8,
+    "Weekly Express": 8,
+    "Special": 7,
+    "Tourist": 6,
+    "Fully Tariffed Rake": 5,
+    "Passenger (MEMU)": 4,
+    "Luxury Tourist": 10,
+    "Other": 1
+}
+PLATFORM_MAP = {
+    "CSMT": 18,
+    "LTT": 7,
+    "KYN": 8,
+    "DR": 8, 
+    "TNA": 10,
+    "PNVL": 7
+}
+
+def generate_features(stations, trains):
+    """
+    Generates estimated features for stations and trains.
+    """
+    station_features = {}
+    for station in stations:
+        station_code = station.get("code")
+      
+        num_platforms = PLATFORM_MAP.get(station_code, 2)
+        station_features[station_code] = {
+            "platforms": num_platforms,
+            "capacity": num_platforms * 10,  
+            "location": 0  
+        }
+
+    train_features = []
+    for train in trains:
+        train_type = train.get("type", "Other")
+    
+        priority = PRIORITY_MAP.get(train_type, 1)
+
+        train_features.append({
+            "priority": priority,
+            "route": [train.get("origin"), train.get("dest")],  
+            "schedule": {
+                "departure_s": train.get("sched_departure_s"),
+                "arrival_s": train.get("sched_arrival_s")
+            }
+        })
+    
+    return station_features, train_features
+
 def export_corridor(station_codes, corridor_yaml="configs/corridor.yaml"):
     with driver.session() as session:
         q = """
@@ -54,7 +107,7 @@ def export_scenarios(station_codes, out_dir="data/scenarios"):
         WHERE t.source IN $codes OR t.destination IN $codes
         RETURN t.id AS tid, t.source AS origin, t.destination AS dest,
                t.type AS type, t.priority AS priority
-        LIMIT 10
+       
         """
         trains = session.run(q, codes=station_codes)
 
@@ -65,7 +118,7 @@ def export_scenarios(station_codes, out_dir="data/scenarios"):
                 "tid": tr["tid"],
                 "origin": tr["origin"],
                 "dest": tr["dest"],
-                "route_blocks": [],  # you can fill this by traversing TRACK edges
+                "route_blocks": [],  
                 "sched_departure_s": start_time + idx*300,
                 "sched_arrival_s": start_time + (idx+1)*1200,
                 "priority": tr["priority"] or 3,
@@ -82,7 +135,28 @@ def export_scenarios(station_codes, out_dir="data/scenarios"):
 
 
 if __name__ == "__main__":
-    # Pick 3–4 adjacent stations manually for now
-    corridor_stations = ["THVM", "KRMI", "MAO"]
+   
+    corridor_stations = ["CSMT", "DR", "TNA","KYN","PNVL","LTT","TNA","THK", "DI", "KOPR","MBQ","ADH","CLA"]
     export_corridor(corridor_stations)
     export_scenarios(corridor_stations)
+    
+    
+    sample_trains = [
+    {"tid": "1011", "origin": "CSMT", "dest": "NGP", "type": "Superfast", "sched_departure_s": 0, "sched_arrival_s": 1200},
+    {"tid": "1037", "origin": "LTT", "dest": "SWV", "type": "Special", "sched_departure_s": 300, "sched_arrival_s": 2400},
+    {"tid": "11007", "origin": "CSMT", "dest": "PUNE", "type": "Express", "sched_departure_s": 4500, "sched_arrival_s": 19200},
+    {"tid": "12933", "origin": "BDTS", "dest": "ADI", "type": "Superfast", "sched_departure_s": 6000, "sched_arrival_s": 25200},
+    {"tid": "99907", "origin": "PUNE", "dest": "TGN", "type": "Passenger (MEMU)", "sched_departure_s": 8000, "sched_arrival_s": 10000}
+    ] 
+    sample_stations = [{"code": "CSMT"}, {"code": "LTT"},
+                       {"code": "DR"},
+        {"code": "TNA"},
+        {"code": "KYN"},
+        {"code": "PNVL"},
+        {"code": "ADH"},
+        {"code": "PUNE"},
+        {"code": "BDTS"}]
+
+    station_features, train_features = generate_features(sample_stations, sample_trains)
+    print("\nGenerated Station Features:", json.dumps(station_features, indent=2))
+    print("\nGenerated Train Features:", json.dumps(train_features, indent=2))

@@ -1,48 +1,117 @@
 blocks:
-- from: THVM
+- from: PNVL
+  length_km: 37
+  name: PNVL-TNA
+  single_track: true
+  speed_limit: 80
+  to: TNA
+- from: PNVL
+  length_km: 35
+  name: PNVL-KYN
+  single_track: true
+  speed_limit: 80
+  to: KYN
+- from: CSMT
+  length_km: 8
+  name: CSMT-DR
+  single_track: true
+  speed_limit: 80
+  to: DR
+- from: DR
+  length_km: 9
+  name: DR-CSMT
+  single_track: true
+  speed_limit: 80
+  to: CSMT
+- from: DR
+  length_km: 25
+  name: DR-TNA
+  single_track: true
+  speed_limit: 80
+  to: TNA
+- from: DR
+  length_km: 44
+  name: DR-KYN
+  single_track: true
+  speed_limit: 80
+  to: KYN
+- from: TNA
+  length_km: 37
+  name: TNA-PNVL
+  single_track: true
+  speed_limit: 80
+  to: PNVL
+- from: TNA
+  length_km: 24
+  name: TNA-DR
+  single_track: true
+  speed_limit: 80
+  to: DR
+- from: TNA
+  length_km: 20
+  name: TNA-KYN
+  single_track: true
+  speed_limit: 80
+  to: KYN
+- from: TNA
   length_km: 17
-  name: THVM-KRMI
+  name: TNA-LTT
   single_track: true
   speed_limit: 80
-  to: KRMI
-- from: THVM
-  length_km: 46
-  name: THVM-MAO
+  to: LTT
+- from: KYN
+  length_km: 35
+  name: KYN-PNVL
   single_track: true
   speed_limit: 80
-  to: MAO
-- from: KRMI
-  length_km: 18
-  name: KRMI-THVM
+  to: PNVL
+- from: KYN
+  length_km: 45
+  name: KYN-DR
   single_track: true
   speed_limit: 80
-  to: THVM
-- from: KRMI
-  length_km: 29
-  name: KRMI-MAO
+  to: DR
+- from: KYN
+  length_km: 20
+  name: KYN-TNA
   single_track: true
   speed_limit: 80
-  to: MAO
-- from: MAO
-  length_km: 51
-  name: MAO-THVM
+  to: TNA
+- from: KYN
+  length_km: 37
+  name: KYN-LTT
   single_track: true
   speed_limit: 80
-  to: THVM
-- from: MAO
-  length_km: 33
-  name: MAO-KRMI
+  to: LTT
+- from: LTT
+  length_km: 17
+  name: LTT-TNA
   single_track: true
   speed_limit: 80
-  to: KRMI
+  to: TNA
+- from: LTT
+  length_km: 37
+  name: LTT-KYN
+  single_track: true
+  speed_limit: 80
+  to: KYN
 headway_s: 180
 stations:
-- code: THVM
-  name: THIVIM
+- code: PNVL
+  name: PANVEL
   platforms: 2
-- code: KRMI
-  name: KARMALI
+- code: TNA
+  name: THANE
   platforms: 2
-- code: MAO
-  name: MADGOAN JN.
+- code: KYN
+  name: KALYAN JN
+  platforms: 2
+- code: CSMT
+  name: CST-MUMBAI
+  platforms: 2
+- code: DR
+  name: DADAR
+  platforms: 2
+- code: LTT
+  name: LOKMANYA TIL
   platforms: 2
