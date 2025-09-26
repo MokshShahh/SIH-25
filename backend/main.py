@@ -278,7 +278,7 @@ def optimize_full_station_schedule(station_name):
            collect(r.departure) AS departure_times
     """
 
-    train_data = run_cypher(cypher_query, {"station_code": station_name})
+    train_data = run_cypher(cypher_query, {"station_name": station_name})
 
     if not train_data:
         raise HTTPException(
