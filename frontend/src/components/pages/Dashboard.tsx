@@ -1,7 +1,26 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { ZoomIn, ZoomOut, Home, Play, Pause } from 'lucide-react';
+import { ZoomIn, ZoomOut, Home, Play, Pause, Zap } from 'lucide-react'; // Added Zap icon
 import { NavLink } from 'react-router-dom';
 import axios from 'axios';
+
+const Toast = ({ message, show, onClose }) => {
+    useEffect(() => {
+        if (show) {
+            const timer = setTimeout(() => {
+                onClose();
+            }, 3000); // Hide after 3 seconds
+            return () => clearTimeout(timer);
+        }
+    }, [show, onClose]);
+
+    if (!show) return null;
+
+    return (
+        <div className="fixed top-4 right-4 z-[100] p-4 bg-green-500 text-white rounded-lg shadow-xl transition-opacity duration-300">
+            {message}
+        </div>
+    );
+};
 
 function Dashboard() {
   const svgRef = useRef(null);
@@ -19,6 +38,9 @@ function Dashboard() {
   const[showPopup, setShowPopup] = useState(false)
   const [stationTrains, setStationTrains] = useState({ arrivals: [], departures: [], allTrains: [] }); 
   
+  // 🌟 NEW STATE for Toast notification
+  const [showToast, setShowToast] = useState(false);
+
   //ASYNC FUNCTION TO FETCH TRAINS
   const fetchStationTrains = async (stationCode: string) => {
     const backend_url = " https://sih-25-sn32.onrender.com";
@@ -244,14 +266,29 @@ function Dashboard() {
     
     return () => clearInterval(interval);
   }, [isAnimating]);
-  function getRandomInt(min:int, max) {
-    min = Math.ceil(min);
-    max = Math.floor(max);
-    return Math.floor(Math.random() * (max - min)) + min;
-  }
-  const getStationColor = (type) => {
-    let colours=['#2563eb','#dc2626','#059669']
-    return colours[getRandomInt(0,3)];
+  
+  // Assigns color based on the first letter of the station name
+  const getStationColor = (stationType, stationName) => {
+    if (!stationName) return '#9ca3af'; 
+
+    const firstLetter = stationName.charAt(0).toUpperCase();
+
+    if (firstLetter >= 'A' && firstLetter <= 'I') {
+      return '#2563eb'; // Blue (A-I)
+    } else if (firstLetter >= 'J' && firstLetter <= 'R') {
+      return '#dc2626'; // Red (J-R)
+    } else if (firstLetter >= 'S' && firstLetter <= 'Z') {
+      return '#059669'; // Green (S-Z)
+    } else {
+      return '#f59e0b'; // Amber/Orange for numbers/symbols/other
+    }
+  };
+
+  // 🌟 NEW HANDLER for Optimize button click
+  const handleOptimizeClick = () => {
+    console.log(`Optimizing station: ${selectedStation.name}`);
+    setShowToast(true);
+    // You could add an API call here to actually optimize the station
   };
 
   const handleMouseDown = (e) => {
@@ -385,6 +422,11 @@ const handleStationClick = (station) => {
 
   return (
     <div className="h-screen w-full bg-gray-50 flex flex-col">
+      <Toast 
+        message={`${selectedStation?.name} is now optimized! 🚀`} 
+        show={showToast} 
+        onClose={() => setShowToast(false)} 
+      />
       {/* Navbar */}
       <div className="bg-white text-gray-800 px-6 py-4 shadow-lg border-b flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-700">Train Network Dashboard</h1>
@@ -425,19 +467,19 @@ const handleStationClick = (station) => {
         </div>
       </div>
       
-      {/* Legend */}
+      {/* Legend - Updated to reflect the alphabetical coloring scheme */}
       <div className="bg-white px-6 py-2 flex items-center space-x-6 text-sm text-gray-700 border-b border-gray-200 shadow-sm">
         <div className="flex items-center space-x-2">
           <div className="w-3 h-3 rounded-full bg-blue-600"></div>
-          <span>Interstate</span>
+          <span>Interstate (Blue)</span>
         </div>
         <div className="flex items-center space-x-2">
           <div className="w-3 h-3 rounded-full bg-red-500"></div>
-          <span>Terminal</span>
+          <span>Terminal (Red)</span>
         </div>
         <div className="flex items-center space-x-2">
           <div className="w-3 h-3 rounded-full bg-green-600"></div>
-          <span>Local</span>
+          <span>Local (Green)</span>
         </div>
         <div className="flex items-center space-x-2">
           <div className="w-3 h-3 bg-orange-400"></div>
@@ -540,7 +582,8 @@ const handleStationClick = (station) => {
                 cx={station.x}
                 cy={station.y}
                 r="15"
-                fill={getStationColor(station.type)}
+                // 🌟 Passing station.name to determine the color
+                fill={getStationColor(station.type, station.name)} 
                 opacity="0.2"
                 filter="url(#glow)"
               />
@@ -549,7 +592,8 @@ const handleStationClick = (station) => {
                 cx={station.x}
                 cy={station.y}
                 r="10"
-                fill={getStationColor(station.type)}
+                // 🌟 Passing station.name to determine the color
+                fill={getStationColor(station.type, station.name)}
                 stroke="#ffffff"
                 strokeWidth="2"
                 className="cursor-pointer hover:r-12 transition-all"
@@ -589,23 +633,37 @@ const handleStationClick = (station) => {
       {/* Station Details Popup */}
       {showPopup && selectedStation && (
         <div className="fixed inset-0 bg-black/45 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 max-h-96 overflow-hidden">
-            {/* Popup Header (Content remains the same) */}
+          {/* 🌟 MODIFIED: max-w-lg for bigger size and max-h increased */}
+          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 max-h-[500px] overflow-hidden">
+            
+            {/* 🌟 MODIFIED HEADER: Added Optimize Button */}
             <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 flex justify-between items-center">
               <div>
                 <h3 className="text-lg font-bold">{selectedStation.name}</h3>
                 <p className="text-sm text-blue-100">{selectedStation.city} • {selectedStation.type}</p>
               </div>
-              <button 
-                onClick={() => setShowPopup(false)}
-                className="text-blue-100 hover:text-white text-2xl font-bold w-8 h-8 flex items-center justify-center rounded hover:bg-blue-500 transition-colors"
-              >
-                ×
-              </button>
+              <div className="flex items-center space-x-3">
+                {/* Optimize Button */}
+                <button
+                  onClick={handleOptimizeClick}
+                  className="flex items-center space-x-1 px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors text-sm font-semibold shadow-md"
+                >
+                  <Zap className="w-4 h-4" />
+                  <span>Optimize</span>
+                </button>
+                {/* Close Button */}
+                <button 
+                  onClick={() => setShowPopup(false)}
+                  className="text-blue-100 hover:text-white text-2xl font-bold w-8 h-8 flex items-center justify-center rounded hover:bg-blue-500 transition-colors"
+                >
+                  ×
+                </button>
+              </div>
             </div>
 
             {/* Popup Content */}
-            <div className="p-6 overflow-y-auto max-h-80">
+            {/* 🌟 MODIFIED: max-h-96 for more content space */}
+            <div className="p-6 overflow-y-auto max-h-96"> 
               {stationTrains.allTrains.length === 0 ? (
                 <div className="text-center p-8 text-gray-500">
                   Loading train schedule...
@@ -646,7 +704,8 @@ const handleStationClick = (station) => {
                         Departures ({stationTrains.departures.length})
                       </h4>
                       {stationTrains.departures.length > 0 ? (
-                        <div className="space-y-2 max-h-48 overflow-y-auto">
+                        // 🌟 MODIFIED: Increased max-h for scrollable list
+                        <div className="space-y-2 max-h-60 overflow-y-auto pr-2"> 
                           {stationTrains.departures.map((train) => (
                             <div key={train.train_id} className="bg-green-50 p-3 rounded-lg border-l-4 border-green-500">
                               <div className="text-sm font-medium text-gray-800">{train.train_name} ({train.train_id})</div>
@@ -669,7 +728,8 @@ const handleStationClick = (station) => {
                         Arrivals ({stationTrains.arrivals.length})
                       </h4>
                       {stationTrains.arrivals.length > 0 ? (
-                        <div className="space-y-2 max-h-48 overflow-y-auto">
+                         // 🌟 MODIFIED: Increased max-h for scrollable list
+                        <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
                           {stationTrains.arrivals.map((train) => (
                             <div key={train.train_id} className="bg-blue-50 p-3 rounded-lg border-l-4 border-blue-500">
                               <div className="text-sm font-medium text-gray-800">{train.train_name} ({train.train_id})</div>
