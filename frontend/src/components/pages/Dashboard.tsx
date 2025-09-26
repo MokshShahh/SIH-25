@@ -21,7 +21,7 @@ function Dashboard() {
   
   //ASYNC FUNCTION TO FETCH TRAINS
   const fetchStationTrains = async (stationCode: string) => {
-    const backend_url = "http://127.0.0.1:8000";
+    const backend_url = " https://sih-25-sn32.onrender.com";
     try {
       // NOTE: Assuming stationCode is the actual station code (e.g., 'DADAR')
       const response = await axios.get(`${backend_url}/trains/station/${stationCode}`);
@@ -209,7 +209,7 @@ function Dashboard() {
 
   // Handle backend data fetching
   useEffect(() => {
-    const backend_url = "http://127.0.0.1:8000"
+    const backend_url = " https://sih-25-sn32.onrender.com"
     axios.get(`${backend_url}/stations/map`)
       .then(response => {
         setFetchedData(response.data.stations);
