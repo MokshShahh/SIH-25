@@ -424,7 +424,7 @@ const handleStationClick = (station) => {
   return (
     <div className="h-screen w-full bg-gray-50 flex flex-col">
       <Toast 
-        message={`${selectedStation?.name} is now optimized! 🚀`} 
+        message={`${selectedStation?.name} is now optimized!`} 
         show={showToast} 
         onClose={() => setShowToast(false)} 
       />
@@ -447,7 +447,7 @@ const handleStationClick = (station) => {
             className="flex items-center space-x-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors shadow-md"
           >
             {isAnimating ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-            <span>{isAnimating ? 'Pause' : 'Start'} Animation</span>
+            <span>{isAnimating ? 'Pause' : 'Start'} Simulating Trains</span>
           </button>
           
           <div className="text-sm text-gray-600 font-medium">
