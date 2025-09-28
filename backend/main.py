@@ -112,7 +112,7 @@ async def broadcast(msg: dict):
 def get_map_data():
     query = """
     MATCH p=(s1:Station)-[:TRACK]->(s2:Station) 
-    RETURN p LIMIT 30
+    RETURN p LIMIT 100
     """
     with driver.session() as session:
         result = session.run(query)
