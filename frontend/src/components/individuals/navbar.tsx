@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import AnimatedText from "./HoverAnimation";
-import ProfileModal from '../ProfileModal';
 
 function Navbar() {
   const [isModalOpen, setModalOpen] = useState(false);
@@ -30,6 +29,11 @@ function Navbar() {
                 <AnimatedText>Dashboard</AnimatedText>
               </NavLink>
             </li>
+            <li className="cursor-pointer transition-colors">
+              <NavLink to="/mumbai-local" className={(e) => { return e.isActive ? "bg-green-500 text-white p-1.5 rounded-lg" : "" }}>
+                <AnimatedText>Mumbai Local</AnimatedText>
+              </NavLink>
+            </li>
           </ul>
         </div>
 
@@ -49,7 +53,7 @@ function Navbar() {
         </div>
       </div>
 
-      <ProfileModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} />
+      {/* <ProfileModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} /> */}
     </>
   );
 }

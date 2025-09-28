@@ -5,6 +5,8 @@ import Header from './components/pages/Header';
 import Dashboard from './components/pages/Dashboard';
 import SignIn from "./components/pages/SignIn";
 import SignUp from "./components/pages/SignUp";
+import MumbaiLocal from "./components/pages/MumbaiLocal";
+
 function App() {
   return (
     <Router>
@@ -13,6 +15,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/signin" element={<SignIn />} />
         <Route path="/signup" element={<SignUp />} />
+        <Route path="/mumbai-local" element={<MumbaiLocal />} />
       </Routes>
     </Router>
   );
