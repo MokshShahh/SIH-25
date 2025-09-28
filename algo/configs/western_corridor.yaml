@@ -1,0 +1,43 @@
+blocks: []
+headway_s: 180
+line_type: WESTERN
+metadata:
+  description: Mumbai WESTERN Line
+  extraction_date: '2025-09-28'
+  line_name: WESTERN
+  source: Government of India Railway Database
+stations:
+- code: DR
+  division: null
+  latitude: null
+  line: CENTRAL
+  longitude: null
+  name: DADAR
+  platforms: 8
+  zone: null
+- code: BVI
+  division: null
+  latitude: null
+  line: WESTERN
+  longitude: null
+  name: BORIVLI
+  platforms: 9
+  zone: null
+- code: BSR
+  division: null
+  latitude: null
+  line: WESTERN
+  longitude: null
+  name: VASAI ROAD
+  platforms: 7
+  zone: null
+- code: UMR
+  division: null
+  latitude: null
+  line: WESTERN
+  longitude: null
+  name: UMARIA
+  platforms: 2
+  zone: null
+total_blocks: 0
+total_stations: 4

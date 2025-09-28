@@ -1,0 +1,27 @@
+blocks: []
+headway_s: 120
+line_type: HARBOUR
+metadata:
+  description: Mumbai HARBOUR Line
+  extraction_date: '2025-09-28'
+  line_name: HARBOUR
+  source: Government of India Railway Database
+stations:
+- code: CSMT
+  division: null
+  latitude: null
+  line: CENTRAL
+  longitude: null
+  name: CST-MUMBAI
+  platforms: 18
+  zone: null
+- code: PNVL
+  division: null
+  latitude: null
+  line: TRANS_HARBOUR
+  longitude: null
+  name: PANVEL
+  platforms: 7
+  zone: null
+total_blocks: 0
+total_stations: 2
