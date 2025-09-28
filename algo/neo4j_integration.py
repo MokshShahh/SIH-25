@@ -1,5 +1,62 @@
 from neo4j import GraphDatabase
 import numpy as np
+<<<<<<< HEAD
+from typing import Dict, List, Tuple
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+uri = os.getenv("AURA_URI")
+user = os.getenv("AURA_USER")
+password = os.getenv("AURA_PASS")
+driver = GraphDatabase.driver(uri, auth=(user, password))
+
+class Neo4jGNNExtractor:
+    def __init__(self, uri=uri, user=user, password=password):
+        self.driver = GraphDatabase.driver(uri, auth=(user, password))
+        
+    def extract_mumbai_central_corridor(self, station_codes: List[str]):
+        """
+        Extract Mumbai Central line corridor from Neo4j
+        Args: station_codes like ['CSMT', 'DR', 'KR', 'TNA'] for Central line
+        """
+        with self.driver.session() as session:
+            # Extract stations
+            stations_query = """
+            MATCH (s:Station) 
+            WHERE s.code IN $codes
+            RETURN s.code as code, s.name as name, 
+                   coalesce(s.platforms, 3) as platforms,
+                   s.zone as zone, s.division as division
+            ORDER BY s.code
+            """
+            stations = list(session.run(stations_query, codes=station_codes))
+            
+            # Extract track connections
+            tracks_query = """
+            MATCH (s1:Station)-[r:TRACK|CONNECTED_TO]->(s2:Station)
+            WHERE s1.code IN $codes AND s2.code IN $codes
+            RETURN s1.code as from_station, s2.code as to_station,
+                   coalesce(r.distance, 10.0) as distance_km,
+                   coalesce(r.speed_limit, 100) as speed_kmph,
+                   coalesce(r.track_type, 'single') as track_type
+            """
+            tracks = list(session.run(tracks_query, codes=station_codes))
+            
+            # Extract block sections (if available)
+            blocks_query = """
+            MATCH (b:Block)-[:CONNECTS]-(s:Station)
+            WHERE s.code IN $codes
+            RETURN b.name as block_name, b.length as length,
+                   collect(s.code) as connected_stations
+            """
+            try:
+                blocks = list(session.run(blocks_query, codes=station_codes))
+            except:
+                blocks = []  # Fallback if Block nodes don't exist
+            
+            return self._convert_to_gnn_format(stations, tracks, blocks)
+=======
 import yaml, json
 import os
 from dotenv import load_dotenv
@@ -12,6 +69,7 @@ class Neo4jToGNN:
         self.user = os.getenv("AURA_USER") 
         self.password = os.getenv("AURA_PASS")
         self.driver = GraphDatabase.driver(self.uri, auth=(self.user, self.password))
+>>>>>>> cea37b0c018244dd7f55b0f5ac4049315f7c575c
     
     def extract_mumbai_graph(self):
         """Extract Mumbai railway network and convert to GNN format"""
