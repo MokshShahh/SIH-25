@@ -1,0 +1,94 @@
+blocks:
+- from: KYN
+  length_km: 3.0
+  name: KYN-VLDI
+  single_track: false
+  speed_limit: 80
+  to: VLDI
+- from: VLDI
+  length_km: 3.0
+  name: VLDI-ULNR
+  single_track: false
+  speed_limit: 80
+  to: ULNR
+- from: ULNR
+  length_km: 3.0
+  name: ULNR-ABH
+  single_track: false
+  speed_limit: 80
+  to: ABH
+- from: ABH
+  length_km: 3.0
+  name: ABH-BUD
+  single_track: false
+  speed_limit: 80
+  to: BUD
+- from: BUD
+  length_km: 3.0
+  name: BUD-VGI
+  single_track: false
+  speed_limit: 80
+  to: VGI
+- from: VGI
+  length_km: 3.0
+  name: VGI-SHLU
+  single_track: false
+  speed_limit: 80
+  to: SHLU
+- from: SHLU
+  length_km: 3.0
+  name: SHLU-NRL
+  single_track: false
+  speed_limit: 80
+  to: NRL
+- from: NRL
+  length_km: 3.0
+  name: NRL-BVS
+  single_track: false
+  speed_limit: 80
+  to: BVS
+- from: BVS
+  length_km: 3.0
+  name: BVS-KJT
+  single_track: false
+  speed_limit: 80
+  to: KJT
+headway_s: 300
+metadata:
+  created_from: Neo4j Railway Database
+  description: Mumbai Central Line Karjat Branch
+  line_name: CENTRAL_KARJAT
+  total_distance_km: 27.0
+  total_stations: 10
+roadblocks: []
+stations:
+- code: KYN
+  name: KALYAN JN
+  platforms: 8
+- code: VLDI
+  name: VLDI
+  platforms: 2
+- code: ULNR
+  name: ULNR
+  platforms: 2
+- code: ABH
+  name: ABH
+  platforms: 2
+- code: BUD
+  name: BUD
+  platforms: 2
+- code: VGI
+  name: VGI
+  platforms: 2
+- code: SHLU
+  name: SHLU
+  platforms: 2
+- code: NRL
+  name: NERAL
+  platforms: 2
+- code: BVS
+  name: BVS
+  platforms: 2
+- code: KJT
+  name: KARJAT
+  platforms: 3

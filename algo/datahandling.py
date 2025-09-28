@@ -421,11 +421,15 @@ class MumbaiRailwayDataHandler:
     def _get_stations_from_neo4j(self, station_codes: List[str]) -> Dict:
         """Fetch station data from Neo4j"""
         with self.driver.session() as session:
+            # First, let's see what properties are available
             query = """
             MATCH (s:Station) 
             WHERE s.code IN $codes
-            RETURN s.code as code, s.name as name, s.platforms as platforms,
-                   s.zone as zone, s.division as division
+            RETURN s.code as code, s.name as name, 
+                   coalesce(s.platforms, 2) as platforms,
+                   coalesce(s.zone, 'Unknown') as zone, 
+                   coalesce(s.division, 'Mumbai') as division
+            LIMIT 5
             """
             result = session.run(query, codes=station_codes)
             
@@ -434,10 +438,29 @@ class MumbaiRailwayDataHandler:
                 code = record["code"]
                 stations[code] = {
                     "name": record["name"] or code,
-                    "platforms": record["platforms"] or MUMBAI_STATION_PLATFORMS.get(code, 2),
-                    "zone": record["zone"],
-                    "division": record["division"]
+                    "platforms": MUMBAI_STATION_PLATFORMS.get(code, record["platforms"] or 2),
+                    "zone": record["zone"] or "Unknown",
+                    "division": record["division"] or "Mumbai"
                 }
+            
+            # If no results, let's try a simpler query
+            if not stations:
+                simple_query = """
+                MATCH (s:Station) 
+                WHERE s.code IN $codes
+                RETURN s.code as code, s.name as name
+                """
+                simple_result = session.run(simple_query, codes=station_codes)
+                
+                for record in simple_result:
+                    code = record["code"]
+                    stations[code] = {
+                        "name": record["name"] or code,
+                        "platforms": MUMBAI_STATION_PLATFORMS.get(code, 2),
+                        "zone": "Unknown",
+                        "division": "Mumbai"
+                    }
+            
             return stations
     
     def _get_tracks_from_neo4j(self, station_sequence: List[str]) -> Dict:
@@ -449,27 +472,53 @@ class MumbaiRailwayDataHandler:
                 from_station = station_sequence[i]
                 to_station = station_sequence[i + 1]
                 
+                # Try different relationship types and property names
                 query = """
-                MATCH (s1:Station {code: $from})-[r:TRACK|CONNECTED_TO]->(s2:Station {code: $to})
-                RETURN coalesce(r.distance, r.length, 5.0) as distance,
-                       coalesce(r.speed_limit, 100) as speed_limit,
-                       coalesce(r.track_type, 'double') as track_type
+                MATCH (s1:Station)-[r]->(s2:Station)
+                WHERE s1.code = $from_code AND s2.code = $to_code
+                RETURN coalesce(r.distance, r.length, r.dist, 5.0) as distance,
+                       coalesce(r.speed_limit, r.speed, 100) as speed_limit,
+                       coalesce(r.track_type, r.type, 'double') as track_type,
+                       type(r) as rel_type
                 UNION
-                MATCH (s1:Station {code: $to})-[r:TRACK|CONNECTED_TO]->(s2:Station {code: $from})
-                RETURN coalesce(r.distance, r.length, 5.0) as distance,
-                       coalesce(r.speed_limit, 100) as speed_limit,
-                       coalesce(r.track_type, 'double') as track_type
+                MATCH (s1:Station)-[r]-(s2:Station)
+                WHERE s1.code = $from_code AND s2.code = $to_code
+                RETURN coalesce(r.distance, r.length, r.dist, 5.0) as distance,
+                       coalesce(r.speed_limit, r.speed, 100) as speed_limit,
+                       coalesce(r.track_type, r.type, 'double') as track_type,
+                       type(r) as rel_type
                 """
                 
-                result = session.run(query, from_station=from_station, to=to_station)
-                record = result.single()
-                
-                if record:
+                try:
+                    result = session.run(query, from_code=from_station, to_code=to_station)
+                    record = result.single()
+                    
+                    if record:
+                        block_name = f"{from_station}-{to_station}"
+                        tracks[block_name] = {
+                            "distance": float(record["distance"]),
+                            "speed_limit": int(record["speed_limit"]),
+                            "single_track": record["track_type"] == "single"
+                        }
+                        print(f"Found track: {block_name} - {record['distance']}km")
+                    else:
+                        # Use default values if no track found
+                        block_name = f"{from_station}-{to_station}"
+                        tracks[block_name] = {
+                            "distance": 3.0,  # Default 3km
+                            "speed_limit": 100,  # Default speed
+                            "single_track": False
+                        }
+                        print(f"Using default for: {block_name}")
+                        
+                except Exception as e:
+                    print(f"Error querying track {from_station}-{to_station}: {e}")
+                    # Use default values
                     block_name = f"{from_station}-{to_station}"
                     tracks[block_name] = {
-                        "distance": float(record["distance"]),
-                        "speed_limit": int(record["speed_limit"]),
-                        "single_track": record["track_type"] == "single"
+                        "distance": 3.0,
+                        "speed_limit": 100,
+                        "single_track": False
                     }
         
         return tracks

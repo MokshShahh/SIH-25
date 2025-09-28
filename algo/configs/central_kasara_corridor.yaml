@@ -1,0 +1,94 @@
+blocks:
+- from: KYN
+  length_km: 3.0
+  name: KYN-SHAD
+  single_track: false
+  speed_limit: 80
+  to: SHAD
+- from: SHAD
+  length_km: 3.0
+  name: SHAD-ABY
+  single_track: false
+  speed_limit: 80
+  to: ABY
+- from: ABY
+  length_km: 3.0
+  name: ABY-TLA
+  single_track: false
+  speed_limit: 80
+  to: TLA
+- from: TLA
+  length_km: 3.0
+  name: TLA-KDV
+  single_track: false
+  speed_limit: 80
+  to: KDV
+- from: KDV
+  length_km: 3.0
+  name: KDV-VSD
+  single_track: false
+  speed_limit: 80
+  to: VSD
+- from: VSD
+  length_km: 3.0
+  name: VSD-ASO
+  single_track: false
+  speed_limit: 80
+  to: ASO
+- from: ASO
+  length_km: 3.0
+  name: ASO-ATG
+  single_track: false
+  speed_limit: 80
+  to: ATG
+- from: ATG
+  length_km: 3.0
+  name: ATG-KDI
+  single_track: false
+  speed_limit: 80
+  to: KDI
+- from: KDI
+  length_km: 3.0
+  name: KDI-KSRA
+  single_track: false
+  speed_limit: 80
+  to: KSRA
+headway_s: 300
+metadata:
+  created_from: Neo4j Railway Database
+  description: Mumbai Central Line Kasara Branch
+  line_name: CENTRAL_KASARA
+  total_distance_km: 27.0
+  total_stations: 10
+roadblocks: []
+stations:
+- code: KYN
+  name: KALYAN JN
+  platforms: 8
+- code: SHAD
+  name: SHAD
+  platforms: 2
+- code: ABY
+  name: ABY
+  platforms: 2
+- code: TLA
+  name: TLA
+  platforms: 2
+- code: KDV
+  name: KDV
+  platforms: 2
+- code: VSD
+  name: VSD
+  platforms: 2
+- code: ASO
+  name: ASO
+  platforms: 2
+- code: ATG
+  name: ATG
+  platforms: 2
+- code: KDI
+  name: KDI
+  platforms: 2
+- code: KSRA
+  name: KASARA
+  platforms: 3
