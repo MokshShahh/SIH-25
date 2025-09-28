@@ -2,9 +2,17 @@
 from neo4j import GraphDatabase
 import numpy as np
 from typing import Dict, List, Tuple
+from dotenv import load_dotenv
+import os
+
+load_dotenv()
+uri = os.getenv("AURA_URI")
+user = os.getenv("AURA_USER")
+password = os.getenv("AURA_PASS")
+driver = GraphDatabase.driver(uri, auth=(user, password))
 
 class Neo4jGNNExtractor:
-    def __init__(self, uri="bolt://localhost:7687", user="neo4j", password="password"):
+    def __init__(self, uri=uri, user=user, password=password):
         self.driver = GraphDatabase.driver(uri, auth=(user, password))
         
     def extract_mumbai_central_corridor(self, station_codes: List[str]):

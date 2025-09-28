@@ -2,14 +2,17 @@ from neo4j import GraphDatabase
 import yaml, json, os
 import random
 from dotenv import load_dotenv
+import pandas as pd
 
-# Your existing functions
 load_dotenv()
 uri = os.getenv("AURA_URI")
 user = os.getenv("AURA_USER")
 password = os.getenv("AURA_PASS")
 
 driver = GraphDatabase.driver(uri, auth=(user, password))
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
+file_path = os.path.join(BASE_DIR, "mumbai-lines.xlsx")
 
 PRIORITY_MAP = {
     "Superfast": 9,
@@ -23,14 +26,135 @@ PRIORITY_MAP = {
     "Luxury Tourist": 10,
     "Other": 1
 }
-PLATFORM_MAP = {
-    "CSMT": 18,
-    "LTT": 7,
-    "KYN": 8,
-    "DR": 8,
-    "TNA": 10,
-    "PNVL": 7
+HARBOUR_LINE_CODES = [
+    # CSMT to Panvel stretch
+    "CSMT", "MSD", "SNRD", "DKRD", "RRD", "CTGN", "SVE", "VDLR",
+    "GTBN", "CHF", "CLA", "TKNG", "CMBR", "GV", "MNKD", "VSH", 
+    "SNCR", "JNJ", "NEU", "SWDV", "BEPR", "KHAG", "MANR", "KNDS", "PNVL",
+    # Wadala Road to Andheri/Goregaon stretch
+    "MM", "BA", "KHR", "STC", "VLP", "ADH", "JOS", "RMAR", "GMN"
+]
+
+MUMBAI_STATION_PLATFORM_MAP = {
+    # MAJOR HUBS 
+    "CSMT": 18,  
+    "KYN": 8,    
+    "TNA": 10,   
+    "DR": 8,    
+    "PNVL": 7,   
+    "LTT": 5,    
+    "MMCT": 9,   
+    "CCG": 4,    
+    "ADH": 9,    
+    "BVI": 9,    
+    "CLA": 8,    
+    "BSR": 7,    
+    "DDR": 6,    
+    
+    #  Western Line Stations 
+    "MEL": 4,    # Marine Lines
+    "CYR": 4,    # Charni Road
+    "GTR": 4,    # Grant Road
+    "MX": 4,     # Mahalaxmi
+    "PL": 4,     # Lower Parel
+    "PBHD": 4,   # Prabhadevi (Formerly EPR)
+    "MRU": 4,    # Matunga Road
+    "MM": 4,     # Mahim Junction
+    "BA": 4,     # Bandra
+    "KHR": 4,    # Khar Road
+    "STC": 4,    # Santacruz
+    "VLP": 4,    # Vile Parle
+    "JOS": 4,    # Jogeshwari
+    "RMAR": 4,   # Ram Mandir
+    "GMN": 4,    # Goregaon
+    "MDD": 4,    # Malad
+    "KILE": 4,   # Kandivali
+    "DIC": 4,    # Dahisar
+    "MIRA": 4,   # Mira Road
+    "BYR": 6,    # Bhayandar
+    "NIG": 4,    # Naigaon
+    "NSP": 4,    # Nallasopara
+    "VR": 4,     # Virar
+    "VTN": 2,    # Vaitarna
+    "SAH": 2,    # Saphale
+    "KLV": 2,    # Kelve Road
+    "PLG": 2,    # Palghar
+    "UMR": 2,    # Umroli
+    "BOR": 2,    # Boisar
+    "VGN": 2,    # Vangaon
+    "DRD": 2,    # Dahanu Road
+    
+    # Central Line 
+    "MSD": 4,    # Masjid
+    "SNRD": 4,   # Sandhurst Road
+    "BY": 4,     # Byculla
+    "CHG": 4,    # Chinchpokli
+    "CRD": 4,    # Currey Road
+    "PR": 4,     # Parel
+    "MTN": 4,    # Matunga
+    "SIN": 4,    # Sion
+    "VVH": 4,    # Vidyavihar
+    "GC": 4,     # Ghatkopar
+    "VK": 4,     # Vikhroli
+    "KJMG": 4,   # Kanjurmarg
+    "BND": 4,    # Bhandup
+    "NHU": 4,    # Nahur
+    "MLND": 4,   # Mulund
+    "KLVA": 4,   # Kalwa
+    "MBQ": 4,    # Mumbra
+    "DIVA": 4,   # Diva Junction
+    "KOPR": 4,   # Kopar
+    "DI": 4,     # Dombivli
+    "THK": 4,    # Thakurli
+    
+    # Central Line (Kasara Branch) 
+    "SHAD": 2,   # Shahad
+    "ABY": 2,    # Ambivli
+    "TLA": 2,    # Titwala
+    "KDV": 2,    # Khadavli
+    "VSD": 2,    # Vasind
+    "ASO": 2,    # Asangaon
+    "ATG": 2,    # Atgaon
+    "KDI": 2,    # Khardi
+    "KSRA": 3,   # Kasara (Terminal)
+    
+    #  Central Line 
+    "VLDI": 2,   # Vithalwadi
+    "ULNR": 2,   # Ulhasnagar
+    "ABH": 2,    # Ambarnath
+    "BUD": 2,    # Badlapur
+    "VGI": 2,    # Vangani
+    "SHLU": 2,   # Shelu
+    "NRL": 2,    # Neral Junction
+    "BVS": 2,    # Bhivpuri Road
+    "KJT": 3,    # Karjat (Terminal/Branch)
+    "PDI": 2,    # Palasdari
+    "KLY": 2,    # Kelavli
+    "DLV": 2,    # Dolavli
+    "LWJ": 2,    # Lowjee
+    "KPQ": 2,    # Khopoli (Terminal)
+    
+    # Harbour 
+    "DKRD": 2,   # Dockyard Road
+    "RRD": 2,    # Reay Road
 }
+
+
+STATION_TO_LINE_MAP = {
+   
+    **{code: "HARBOUR" for code in HARBOUR_LINE_CODES},
+  
+}
+
+def load_stations_from_excel(file_path, sheet_name="HARBOUR"):
+    """
+    Load station codes from a given Excel sheet.
+    Assumes station codes are in the first column.
+    """
+    df = pd.read_excel(file_path, sheet_name=sheet_name)
+   
+    stations = df.iloc[:, 0].dropna().astype(str).tolist()
+    return stations
 
 def generate_features(stations, trains):
     """
@@ -159,63 +283,131 @@ def generate_random_route_blocks(all_stations, origin, dest):
     
     return route_blocks
 
-def export_scenarios(station_codes, out_dir="data/scenarios"):
-    with driver.session() as session:
-        trains_q = """
-        MATCH (t:Train)
-        WHERE t.source IN $codes OR t.destination IN $codes
-        RETURN t.id AS tid, t.source AS origin, t.destination AS dest,
-               t.type AS type, t.priority AS priority
-        """
-        trains_result = session.run(trains_q, codes=station_codes)
-        trains_data = list(trains_result)
+
+
+def get_linear_route(origin, dest, all_line_data):
+    """
+    Finds the most appropriate strictly linear list for a given origin/destination pair.
+    
+    Args:
+        origin (str): Origin station code.
+        dest (str): Destination station code.
+        all_line_data (dict): Dictionary containing the linear station lists.
         
-        scenario = []
-        start_time = 0
-        for idx, tr in enumerate(trains_data):
-            tid = str(tr["tid"])
-            
-            # Generate random route blocks for the train
-            route_blocks = generate_random_route_blocks(station_codes, tr["origin"], tr["dest"])
+    Returns:
+        list: The sequential list of stations for the line, or [] if no clear line is found.
+    """
+    
+    # Helper to check if both stations are on a given line and return that line's list
+    def check_and_return(line_key):
+        line_stations = all_line_data.get(line_key, [])
+        if origin in line_stations and dest in line_stations:
+            return line_stations
+        return []
 
-            scenario.append({
-                "tid": tid,
-                "origin": tr["origin"],
-                "dest": tr["dest"],
-                "route_blocks": route_blocks,
-                "sched_departure_s": start_time + idx*300,
-                "sched_arrival_s": start_time + (idx+1)*1200,
-                "priority": tr["priority"] or 3,
-                "type": tr["type"] or "Other",
-                "dwell_rules": {}
-            })
+    # Prioritize the lines you've defined
+    if route := check_and_return("CENTRAL"):
+        return route
+    if route := check_and_return("WESTERN"):
+        return route
+    if route := check_and_return("HARBOUR"):
+        return route
+        
+    
+    return []
 
-        os.makedirs(out_dir, exist_ok=True)
-        out_path = os.path.join(out_dir, "scenario1.json")
-        with open(out_path, "w") as f:
-            json.dump(scenario, f, indent=2)
+def generate_simulated_scenarios(all_line_data, out_dir="data/scenarios", num_trains=20):
+    """
+    Generates a set of simulated train scenarios based on the linear Excel station lists.
+    This replaces the Neo4j query.
+    """
 
-        print(f"Scenario saved to {out_path}")
+    linear_lists = [
+        all_line_data.get("CENTRAL", []),
+        all_line_data.get("WESTERN", []),
+        all_line_data.get("HARBOUR", [])
+    ]
+    # Filter out any empty lists
+    linear_lists = [lst for lst in linear_lists if lst]
+
+    if not linear_lists:
+        print("ERROR: No valid linear station lists loaded from Excel to simulate routes.")
+        return
+
+    scenario = []
+    start_time = 0
+    
+    for idx in range(num_trains):
+       
+        line_stations = random.choice(linear_lists)
+        
+        origin = random.choice(line_stations)
+        
+        dest = random.choice([s for s in line_stations if s != origin])
+   
+        route_blocks = generate_random_route_blocks(line_stations, origin, dest)
+        
+        # Fallback to ensure we always have some block if O/D are adjacent
+        if not route_blocks and origin != dest:
+            route_blocks = [f"{origin}-{dest}"]
+
+        # 5. Create the simulated train record
+        scenario.append({
+            "tid": f"SIM_{idx+1}",
+            "origin": origin,
+            "dest": dest,
+            "route_blocks": route_blocks,
+            "sched_departure_s": start_time + idx * 300, # Departure every 5 minutes
+            "sched_arrival_s": start_time + (idx + 1) * 1200,
+            "priority": random.randint(3, 9), # Random priority
+            "type": "Passenger (MEMU)",
+            "dwell_rules": {}
+        })
+
+    os.makedirs(out_dir, exist_ok=True)
+    out_path = os.path.join(out_dir, "scenario1.json")
+    with open(out_path, "w") as f:
+        json.dump(scenario, f, indent=2)
+
+    print(f"Scenario saved to {out_path} with {len(scenario)} simulated trains.")
 
 if __name__ == "__main__":
-    corridor_stations = [
-    "SWV", "MAO", "DSJ", "AWB", "LKO", "SVDK", "SSA", "RJPB", "PNBE", "URK",
-    "CSMT", "LTT", "AJNI", "KRMI", "NGP", "PUNE", "MAJN", "JBP", "BDTS", "ATT",
-    "SRC", "REWA", "BPL", "TVC", "PLNI", "POY", "HYB", "JP", "RJT", "MAS",
-    "HTE", "KOAA", "PURI", "ASN", "DHN", "KDS", "SZE", "PLJE", "JSME", "ANVT",
-    "DLI", "NZM", "BKN", "HW", "HMH", "SGNR", "SDLP", "SOG", "PBC", "MKN",
-    "JU", "MTD", "RTGH", "CUR", "SRE", "UMB", "PTK", "JAT", "GKP", "BNY",
-    "CPR", "LJN", "BST", "CPA", "FBD", "BC", "LKU", "JMP", "SHC", "JLWC",
-    "KOTA", "NLP", "MZS", "GHY", "SCL", "NJP", "KNE", "KIR", "SGUJ", "RNY",
-    "RPAN", "MS", "TEN", "ERS", "PDY", "QLN", "KCVL", "CGL", "MDU", "CBE",
-    "MKM", "BWT", "YPR", "PVR", "VSKP", "BGM", "HSRA", "WFD", "BYPL", "DHL",
-    "KRBA", "BSP", "PGTN", "KIK", "NCR", "UBL", "BJP", "RXL", "SC", "DBG",
-    "KCG", "TPTY", "COA", "BZA", "CCT", "KRMR", "NS", "NSL", "TATA", "ADB",
-    "BIDR", "NBQ", "KJM", "NED", "NZB", "RU", "KGP", "JGM", "MDN", "BLS",
-    "SHM", "BQA", "VSU", "CBSA", "CKP", "SBP", "BAND", "KRDL", "BPQ", "CAF",
-    "RNC", "HWH", "DURG", "BCT", "NDLS", "GIMB", "AII", "UDZ", "SNSI", "DR",
-    "BBS", "KOP", "BSL", "SUR", "MYS", "G", "MRJ", "ADI", "AMH", "ASR",
-    "SA", "FD", "BSB", "KZJ", "BTI", "PTA", "PJP", "KK", "PAY"
-   ]
-    export_corridor(corridor_stations)
-    export_scenarios(corridor_stations)
+    
+   
+    
+    print("Loading station codes from Excel...")
+    
+    # Dictionary to hold the three sequential lists
+    all_line_data = {}
+    
+    try:
+        
+        western_stations = load_stations_from_excel(file_path, sheet_name="WESTERN")
+        harbour_stations = load_stations_from_excel(file_path, sheet_name="HARBOUR")
+        central_stations = load_stations_from_excel(file_path, sheet_name="CENTRAL")
+        
+        all_line_data["WESTERN"] = western_stations
+        all_line_data["HARBOUR"] = harbour_stations
+        all_line_data["CENTRAL"] = central_stations
+
+        
+        combined_stations = western_stations + harbour_stations + central_stations
+        all_stations_set = set(combined_stations)
+        corridor_stations = list(all_stations_set)
+        
+        print(f"Loaded {len(harbour_stations)} Harbour stations.")
+        print(f"Loaded {len(central_stations)} Central stations.")
+        print(f"Loaded {len(western_stations)} Western stations.")
+        print(f"Total Unique Stations in Corridor: {len(corridor_stations)}")
+
+    except Exception as e:
+        print(f"ERROR: Could not load all Excel sheets: {e}. Cannot generate routes.")
+        corridor_stations = []
+        all_line_data = {}
+        
+    
+    if corridor_stations:
+        export_corridor(corridor_stations)
+    
+ 
+    generate_simulated_scenarios(all_line_data) 
