@@ -106,21 +106,13 @@ async def broadcast(msg: dict):
             except:
                 pass
 
-@app.get("/stations")
-def get_stations():
-    query = """
-    MATCH (s:Station)
-    RETURN coalesce(s.code, "") AS code, coalesce(s.name, "Unknown") AS name
-    ORDER BY code
-    """
-    return run_cypher(query)
 
 #sends stations to frontend for map visualization
 @app.get("/stations/map")
 def get_map_data():
     query = """
     MATCH p=(s1:Station)-[:TRACK]->(s2:Station) 
-    RETURN p LIMIT 10
+    RETURN p LIMIT 100
     """
     with driver.session() as session:
         result = session.run(query)
@@ -134,127 +126,8 @@ def get_map_data():
     print(data)
     return {"stations": data}
 
-@app.get("/stations/network")
-def get_station_network():
-    query = """
-    MATCH (s1:Station)-[e:TRACK]->(s2:Station)
-    RETURN coalesce(s1.code, "") AS from,
-           coalesce(s2.code, "") AS to,
-           coalesce(e.distance, 0) AS distance
-    """
-    return run_cypher(query)
 
-@app.get("/stations/{station_identifier}/trains")
-def get_trains_for_station(station_identifier: str):
-    """Get trains for a station (supports both code and name)"""
-    query = """
-    MATCH (t:Train)-[r:ROUTE]->(s:Station {code: $station_code})
-    RETURN t.id AS train_id,
-           coalesce(t.name, "Unnamed Train") AS train_name,
-           coalesce(r.arrival, "NA") AS arrival,
-           coalesce(r.departure, "NA") AS departure,
-           coalesce(r.seq, -1) AS seq
-    ORDER BY r.seq
-    """
-    result = run_cypher(query, {"station_code": station_identifier})
-    
-    if result:
-        return result
 
-    query = """
-    MATCH (t:Train)-[r:ROUTE]->(s:Station {name: $station_name})
-    RETURN t.id AS train_id,
-           coalesce(t.name, "Unnamed Train") AS train_name,
-           coalesce(r.arrival, "NA") AS arrival,
-           coalesce(r.departure, "NA") AS departure,
-           coalesce(r.seq, -1) AS seq
-    ORDER BY r.seq
-    """
-    return run_cypher(query, {"station_name": station_identifier})
-
-@app.get("/stations/{station_name}/arrivals")
-def get_train_arrivals(station_name: str):
-    query = """
-    MATCH (train:Train)-[:ORIGINATES_FROM]->(origin:Station),
-           (train)-[arrival:SCHEDULED_ARRIVAL]->(destination:Station)
-    WHERE destination.name = $station_name
-    RETURN train, origin, arrival
-    """
-    with driver.session() as session:
-        result = session.run(query, station_name=station_name)
-        data = []
-        for record in result:
-            data.append({
-                "train_name": record["train"]["name"],
-                "train_type": record["train"]["type"],
-                "origin": record["origin"]["name"],
-                "scheduled_arrival": record["arrival"]["arrival_time"],
-                "scheduled_platform": record["arrival"]["scheduled_platform"]
-            })
-    
-    if not data:
-        return {"error": f"No arriving trains found for station: {station_name}"}
-    return {"arrivals": data}
-
-@app.get("/trains/all")
-def get_all_trains():
-    """Get all trains with their complete routes"""
-    query = """
-    MATCH (t:Train)-[r:ROUTE]->(s:Station)
-    WHERE t.id IS NOT NULL
-      AND t.name IS NOT NULL
-      AND r.seq IS NOT NULL
-      AND r.arrival IS NOT NULL
-      AND r.departure IS NOT NULL
-      AND s.code IS NOT NULL
-    WITH t, r, s
-    ORDER BY r.seq
-    WITH t, collect({
-        station_code: s.code,
-        station_name: coalesce(s.name, "Unknown Station"),
-        arrival: r.arrival,
-        departure: r.departure,
-        seq: r.seq,
-        distance: coalesce(r.distance, 0)
-    }) AS route
-    RETURN t.id AS train_id,
-           t.name AS train_name,
-           t.source AS source,
-           t.destination AS destination,
-           route
-    """
-    try:
-        trains = run_cypher(query)
-        if not trains:
-            raise HTTPException(status_code=404, detail="No trains with complete ROUTE data found")
-        return trains
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-@app.get("/trains/{train_id}")
-def get_train_details(train_id: str):
-    query = """
-    MATCH (t:Train {id: $train_id})-[r:ROUTE]->(s:Station)
-    WITH t, r, s
-    ORDER BY r.seq
-    WITH t, collect({
-        station_code: s.code,
-        station_name: coalesce(s.name, "Unknown Station"),
-        arrival: r.arrival,
-        departure: r.departure,
-        seq: r.seq,
-        distance: coalesce(r.distance, 0)
-    }) AS route
-    RETURN t.id AS train_id,
-           t.name AS train_name,
-           t.source AS source,
-           t.destination AS destination,
-           route
-    """
-    result = run_cypher(query, {"train_id": train_id})
-    if not result:
-        raise HTTPException(status_code=404, detail=f"Train {train_id} not found")
-    return result[0]
 
 @app.post("/simulate/start")
 def start_simulation():
@@ -390,13 +263,11 @@ def propose_optimized_schedule(schedule: dict):
         "precedence_decisions": precedence_decisions
     }
 
-@app.post("/optimize/station")
-def optimize_full_station_schedule():
-    station_code = "DR"
-
+@app.get("/trains/station/{station_name}")
+def optimize_full_station_schedule(station_name):
     cypher_query = """
     MATCH (t:Train)-[r:ROUTE]->(s:Station)
-    WHERE s.code = "DR"
+    WHERE s.name = $station_name
     WITH t, r, s
     ORDER BY t.id, toInteger(r.seq)
     RETURN t.id AS train_id,
@@ -407,12 +278,12 @@ def optimize_full_station_schedule():
            collect(r.departure) AS departure_times
     """
 
-    train_data = run_cypher(cypher_query, {"station_code": station_code})
+    train_data = run_cypher(cypher_query, {"station_name": station_name})
 
     if not train_data:
         raise HTTPException(
             status_code=404,
-            detail=f"No trains found for station {station_code}."
+            detail=f"No trains found for station {station_name}."
         )
 
     milp_input = {}

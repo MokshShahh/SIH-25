@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import AnimatedText from "./HoverAnimation";
-import ProfileModal from '../ProfileModal';
 
 function Navbar() {
   const [isModalOpen, setModalOpen] = useState(false);
@@ -49,7 +48,7 @@ function Navbar() {
         </div>
       </div>
 
-      <ProfileModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} />
+      {/* <ProfileModal isOpen={isModalOpen} onClose={() => setModalOpen(false)} /> */}
     </>
   );
 }

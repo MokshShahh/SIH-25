@@ -1,6 +1,6 @@
-# Add to your project (create neo4j_integration.py)
 from neo4j import GraphDatabase
 import numpy as np
+<<<<<<< HEAD
 from typing import Dict, List, Tuple
 from dotenv import load_dotenv
 import os
@@ -56,11 +56,36 @@ class Neo4jGNNExtractor:
                 blocks = []  # Fallback if Block nodes don't exist
             
             return self._convert_to_gnn_format(stations, tracks, blocks)
+=======
+import yaml, json
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+class Neo4jToGNN:
+    def __init__(self):
+        self.uri = os.getenv("AURA_URI")
+        self.user = os.getenv("AURA_USER") 
+        self.password = os.getenv("AURA_PASS")
+        self.driver = GraphDatabase.driver(self.uri, auth=(self.user, self.password))
+>>>>>>> cea37b0c018244dd7f55b0f5ac4049315f7c575c
     
-    def _convert_to_gnn_format(self, stations, tracks, blocks):
-        """Convert Neo4j results to GNN input format"""
+    def extract_mumbai_graph(self):
+        """Extract Mumbai railway network and convert to GNN format"""
         
-        # Build comprehensive node list
+        # Load the corridor data we created
+        try:
+            with open('configs/mumbai_corridor.yaml', 'r') as f:
+                corridor_data = yaml.safe_load(f)
+        except FileNotFoundError:
+            print("Run datahandling.py first to create corridor data")
+            return None
+        
+        stations = corridor_data['stations']
+        blocks = corridor_data['blocks']
+        
+        # Build node list: stations + track blocks
         all_nodes = []
         node_to_idx = {}
         
@@ -71,130 +96,203 @@ class Neo4jGNNExtractor:
                 'type': 'station',
                 'id': node_id,
                 'name': station['name'],
-                'platforms': station['platforms'],
-                'raw_data': station
+                'platforms': station['platforms']
             })
             node_to_idx[node_id] = len(all_nodes) - 1
         
-        # Add track segment nodes
-        for track in tracks:
-            track_id = f"{track['from_station']}-{track['to_station']}"
+        # Add track block nodes
+        for block in blocks:
+            node_id = block['name']  # e.g., "CSMT-DR"
             all_nodes.append({
                 'type': 'track',
-                'id': track_id,
-                'from_station': track['from_station'],
-                'to_station': track['to_station'],
-                'distance': track['distance_km'],
-                'speed_limit': track['speed_kmph'],
-                'raw_data': track
+                'id': node_id,
+                'from_station': block['from'],
+                'to_station': block['to'],
+                'length': block['length_km'],
+                'speed_limit': block['speed_limit']
             })
-            node_to_idx[track_id] = len(all_nodes) - 1
-        
-        # Add block nodes if available
-        for block in blocks:
-            if len(block['connected_stations']) >= 2:
-                block_id = block['block_name']
-                all_nodes.append({
-                    'type': 'block',
-                    'id': block_id,
-                    'length': block.get('length', 5.0),
-                    'stations': block['connected_stations'],
-                    'raw_data': block
-                })
-                node_to_idx[block_id] = len(all_nodes) - 1
+            node_to_idx[node_id] = len(all_nodes) - 1
         
         N = len(all_nodes)
+        print(f"Created graph with {N} nodes ({len(stations)} stations + {len(blocks)} tracks)")
         
-        # Create node features [N, 10] - expanded for centralized approach
-        node_features = np.zeros((N, 10), dtype=np.float32)
+        # Create node features [N, 10]
+        node_features = self._create_node_features(all_nodes)
         
-        for i, node in enumerate(all_nodes):
-            if node['type'] == 'station':
-                node_features[i, 0] = 1.0  # is_station
-                node_features[i, 1] = 0.0  # not_track
-                node_features[i, 2] = node['platforms'] / 6.0  # normalized platforms
-                node_features[i, 3] = 0.0  # current_occupancy (set at runtime)
-                node_features[i, 4] = 0.0  # platform_usage (set at runtime)
-                
-            elif node['type'] == 'track':
-                node_features[i, 0] = 0.0  # not_station
-                node_features[i, 1] = 1.0  # is_track
-                node_features[i, 2] = node['distance'] / 25.0  # normalized distance
-                node_features[i, 3] = 0.0  # track_occupied (set at runtime)
-                node_features[i, 4] = node['speed_limit'] / 160.0  # normalized speed
-                node_features[i, 5] = 0.0  # time_until_free (set at runtime)
-                node_features[i, 6] = 0.0  # headway_satisfied (set at runtime)
-                
-            # Features 7-9 reserved for runtime train information
-            node_features[i, 7] = 0.0  # train_priority (set when train present)
-            node_features[i, 8] = 0.0  # train_delay (set when train present)
-            node_features[i, 9] = 0.0  # decision_required (set at runtime)
-        
-        # Create adjacency matrix [N, N]
-        adjacency = np.zeros((N, N), dtype=np.float32)
-        
-        # Connect stations to their track segments
-        for track in tracks:
-            from_idx = node_to_idx[track['from_station']]
-            to_idx = node_to_idx[track['to_station']]
-            track_idx = node_to_idx[f"{track['from_station']}-{track['to_station']}"]
-            
-            # Bidirectional connections: station <-> track
-            adjacency[from_idx, track_idx] = 1.0
-            adjacency[track_idx, from_idx] = 1.0
-            adjacency[to_idx, track_idx] = 1.0
-            adjacency[track_idx, to_idx] = 1.0
+        # Create adjacency matrix [N, N]  
+        adjacency_matrix = self._create_adjacency_matrix(all_nodes, blocks, node_to_idx)
         
         return {
             'node_features': node_features,
-            'adjacency_matrix': adjacency,
+            'adjacency_matrix': adjacency_matrix,
             'node_mapping': node_to_idx,
             'nodes': all_nodes,
-            'stations': {s['code']: s for s in stations},
-            'tracks': tracks
+            'N': N,
+            'd_node': 10,
+            'd_global': 8
         }
-
-# Usage function
-def load_mumbai_network_from_neo4j():
-    """Load Mumbai railway network for DQN training"""
-    extractor = Neo4jGNNExtractor(
-        uri="bolt://localhost:7687",  # Update with your Neo4j details
-        user="neo4j",
-        password="your_password"
-    )
     
-    # Define corridor for prototype - Central line key stations
-    central_line_stations = ['CSMT', 'DR', 'KR', 'TNA', 'MAS', 'LTT']
+    def _create_node_features(self, nodes):
+        """Create node feature matrix [N, 10]"""
+        N = len(nodes)
+        features = np.zeros((N, 10), dtype=np.float32)
+        
+        for i, node in enumerate(nodes):
+            if node['type'] == 'station':
+                features[i, 0] = 1.0  # is_station
+                features[i, 1] = 0.0  # not_track
+                features[i, 2] = node['platforms'] / 20.0  # normalized platforms
+                # Features 3-4: runtime occupancy data (filled during simulation)
+                
+            elif node['type'] == 'track':
+                features[i, 0] = 0.0  # not_station
+                features[i, 1] = 1.0  # is_track
+                features[i, 2] = node['length'] / 30.0  # normalized length
+                features[i, 3] = node['speed_limit'] / 160.0  # normalized speed
+                # Features 4-6: runtime track occupancy data
+            
+            # Features 7-9: runtime train information (priority, delay, decision_flag)
+            # These will be filled during DQN simulation
+        
+        return features
+    
+    def _create_adjacency_matrix(self, nodes, blocks, node_to_idx):
+        """Create adjacency matrix [N, N] showing connections"""
+        N = len(nodes)
+        adj = np.zeros((N, N), dtype=np.float32)
+        
+        # Connect stations to their track segments
+        for block in blocks:
+            from_station = block['from']
+            to_station = block['to']
+            track_name = block['name']
+            
+            # Get indices
+            from_idx = node_to_idx[from_station]
+            to_idx = node_to_idx[to_station]
+            track_idx = node_to_idx[track_name]
+            
+            # Connections: station <-> track (bidirectional)
+            adj[from_idx, track_idx] = 1.0
+            adj[track_idx, from_idx] = 1.0
+            adj[to_idx, track_idx] = 1.0
+            adj[track_idx, to_idx] = 1.0
+        
+        return adj
+    
+    def create_environment_data(self):
+        """Create data structure for the DQN environment"""
+        graph_data = self.extract_mumbai_graph()
+        
+        if graph_data is None:
+            return None
+        
+        # Extract station and block info for environment
+        stations = {}
+        blocks = {}
+        speed_kmph = {}
+        
+        for node in graph_data['nodes']:
+            if node['type'] == 'station':
+                stations[node['id']] = {
+                    'name': node['name'],
+                    'platforms': node['platforms']
+                }
+            elif node['type'] == 'track':
+                block_name = node['id']
+                blocks[block_name] = {
+                    'name': block_name,
+                    'length_km': node['length'],
+                    'single_track': False  # Mumbai has multiple tracks
+                }
+                speed_kmph[block_name] = node['speed_limit']
+        
+        return {
+            'graph_data': graph_data,
+            'stations': stations,
+            'blocks': blocks,
+            'speed_kmph': speed_kmph,
+            'headway_s': 120  # 2-minute headway for Mumbai locals
+        }
+    
+    def close(self):
+        """Close Neo4j connection"""
+        if self.driver:
+            self.driver.close()
+
+def load_mumbai_network_for_dqn():
+    """Main function to load Mumbai network for DQN training"""
+    
+    neo4j_connector = Neo4jToGNN()
     
     try:
-        graph_data = extractor.extract_mumbai_central_corridor(central_line_stations)
-        print(f"Extracted {len(graph_data['nodes'])} nodes from Neo4j")
-        print(f"Stations: {list(graph_data['stations'].keys())}")
-        return graph_data
+        env_data = neo4j_connector.create_environment_data()
+        
+        if env_data is None:
+            print("Failed to load network data")
+            return None
+        
+        print(f"Loaded Mumbai network:")
+        print(f"- {len(env_data['stations'])} stations")
+        print(f"- {len(env_data['blocks'])} track blocks")
+        print(f"- Graph: {env_data['graph_data']['N']} nodes")
+        print(f"- Features: {env_data['graph_data']['d_node']} dimensions per node")
+        
+        return env_data
         
     except Exception as e:
-        print(f"Neo4j extraction failed: {e}")
-        print("Falling back to simulated network...")
-        return create_fallback_network()
+        print(f"Error loading Mumbai network: {e}")
+        return None
+        
+    finally:
+        neo4j_connector.close()
 
-def create_fallback_network():
-    """Fallback network if Neo4j is unavailable"""
-    stations = {
-        'CSMT': {'code': 'CSMT', 'name': 'Mumbai CSM Terminus', 'platforms': 6},
-        'DR': {'code': 'DR', 'name': 'Dadar', 'platforms': 4},
-        'KR': {'code': 'KR', 'name': 'Kurla', 'platforms': 3},
-        'TNA': {'code': 'TNA', 'name': 'Thane', 'platforms': 4}
-    }
+def test_graph_structure():
+    """Test function to verify graph structure"""
+    env_data = load_mumbai_network_for_dqn()
     
-    tracks = [
-        {'from_station': 'CSMT', 'to_station': 'DR', 'distance_km': 12, 'speed_kmph': 100},
-        {'from_station': 'DR', 'to_station': 'KR', 'distance_km': 8, 'speed_kmph': 90},
-        {'from_station': 'KR', 'to_station': 'TNA', 'distance_km': 15, 'speed_kmph': 110}
-    ]
+    if env_data:
+        graph = env_data['graph_data']
+        print(f"\nGraph structure test:")
+        print(f"Node features shape: {graph['node_features'].shape}")
+        print(f"Adjacency matrix shape: {graph['adjacency_matrix'].shape}")
+        print(f"Total connections: {np.sum(graph['adjacency_matrix'])}")
+        
+        # Show first few nodes
+        print(f"\nFirst 3 nodes:")
+        for i, node in enumerate(graph['nodes'][:3]):
+            print(f"  {i}: {node['type']} - {node['id']}")
+
+
+if __name__ == "__main__":
+    test_graph_structure()
+
+def export_graph_data(output_file="mumbai_graph_data.json"):
+    """Export your Neo4j graph data to JSON for Colab"""
+    env_data = load_mumbai_network_for_dqn()
     
-    extractor = Neo4jGNNExtractor("", "", "")  # Dummy instance for conversion
-    return extractor._convert_to_gnn_format(
-        [stations[k] for k in stations], 
-        tracks, 
-        []
-    )
+    if env_data:
+        # Convert numpy arrays to lists for JSON serialization
+        export_data = {
+            'stations': env_data['stations'],
+            'blocks': env_data['blocks'],
+            'speed_kmph': env_data['speed_kmph'],
+            'node_features': env_data['graph_data']['node_features'].tolist(),
+            'adjacency_matrix': env_data['graph_data']['adjacency_matrix'].tolist(),
+            'node_mapping': env_data['graph_data']['node_mapping'],
+            'nodes': env_data['graph_data']['nodes'],
+            'N': env_data['graph_data']['N'],
+            'd_node': env_data['graph_data']['d_node'],
+            'd_global': env_data['graph_data']['d_global']
+        }
+        
+        with open(output_file, 'w') as f:
+            json.dump(export_data, f, indent=2)
+        
+        print(f"Graph data exported to {output_file}")
+        return export_data
+    return None
+
+if __name__ == "__main__":
+    # Export your graph data
+    export_graph_data("mumbai_graph_data.json")

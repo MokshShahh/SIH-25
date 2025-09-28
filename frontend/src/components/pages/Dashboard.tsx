@@ -1,20 +1,27 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { ZoomIn, ZoomOut, Home, Play, Pause } from 'lucide-react';
+import { ZoomIn, ZoomOut, Home, Play, Pause, Zap } from 'lucide-react'; // Added Zap icon
 import { NavLink } from 'react-router-dom';
 import axios from 'axios';
 
-// Sample data 
-// const sampleData = [
-//   {'p': [{'city': 'Mumbai', 'name': 'Mumbai Central', 'type': 'Interstate'}, 'CONNECTS_TO', {'city': 'Surat', 'name': 'Surat', 'type': 'Interstate'}]},
-//   {'p': [{'city': 'Mumbai', 'name': 'Mumbai Central', 'type': 'Interstate'}, 'CONNECTS_TO', {'city': 'Mumbai', 'name': 'Dadar', 'type': 'Terminal'}]},
-//   {'p': [{'city': 'Delhi', 'name': 'New Delhi', 'type': 'Interstate'}, 'CONNECTS_TO', {'city': 'Bhopal', 'name': 'Bhopal Junction', 'type': 'Interstate'}]},
-//   {'p': [{'city': 'Pune', 'name': 'Pune Junction', 'type': 'Interstate'}, 'CONNECTS_TO', {'city': 'Mumbai', 'name': 'Mumbai Central', 'type': 'Interstate'}]},
-//   {'p': [{'city': 'Surat', 'name': 'Surat', 'type': 'Interstate'}, 'CONNECTS_TO', {'city': 'Delhi', 'name': 'New Delhi', 'type': 'Interstate'}]},
-//   {'p': [{'city': 'Bhopal', 'name': 'Bhopal Junction', 'type': 'Interstate'}, 'CONNECTS_TO', {'city': 'Pune', 'name': 'Pune Junction', 'type': 'Interstate'}]},
-//   {'p': [{'city': 'Mumbai', 'name': 'Dadar', 'type': 'Terminal'}, 'CONNECTS_TO', {'city': 'Mumbai', 'name': 'Kalyan Junction', 'type': 'Local'}]},
-//   {'p': [{'city': 'Mumbai', 'name': 'Thane', 'type': 'Local'}, 'CONNECTS_TO', {'city': 'Mumbai', 'name': 'Mumbai Central', 'type': 'Interstate'}]},
-//   {'p': [{'city': 'Mumbai', 'name': 'Kalyan Junction', 'type': 'Local'}, 'CONNECTS_TO', {'city': 'Mumbai', 'name': 'Thane', 'type': 'Local'}]}
-// ];
+//deployement commit
+const Toast = ({ message, show, onClose }) => {
+    useEffect(() => {
+        if (show) {
+            const timer = setTimeout(() => {
+                onClose();
+            }, 3000); // Hide after 3 seconds
+            return () => clearTimeout(timer);
+        }
+    }, [show, onClose]);
+
+    if (!show) return null;
+
+    return (
+        <div className="fixed top-4 right-4 z-[100] p-4 bg-green-500 text-white rounded-lg shadow-xl transition-opacity duration-300">
+            {message}
+        </div>
+    );
+};
 
 function Dashboard() {
   const svgRef = useRef(null);
@@ -29,7 +36,57 @@ function Dashboard() {
   const [isLoading, setIsLoading] = useState(false);
   const [fetchedData, setFetchedData] = useState([]);
   const [selectedStation, setSelectedStation] = useState(null);
-  const [showPopup, setShowPopup] = useState(false);
+  const[showPopup, setShowPopup] = useState(false)
+  const [stationTrains, setStationTrains] = useState({ arrivals: [], departures: [], allTrains: [] }); 
+  
+  // 🌟 NEW STATE for Toast notification
+  const [showToast, setShowToast] = useState(false);
+
+  //ASYNC FUNCTION TO FETCH TRAINS
+  const fetchStationTrains = async (stationCode: string) => {
+    const backend_url = " https://sih-25-sn32.onrender.com";
+    try {
+      // NOTE: Assuming stationCode is the actual station code (e.g., 'DADAR')
+      const response = await axios.get(`${backend_url}/trains/station/${stationCode}`);
+      
+      const allTrains = response.data.trains || [];
+      
+      // Filter the trains into arrivals and departures based on times
+      const categorizedTrains = allTrains.map(train => {
+        // Assuming the query returns only one entry per train for the specified station
+        const arrivalTime = train.arrival_times[0];
+        const departureTime = train.departure_times[0];
+        
+        let type = '';
+        if (arrivalTime !== '00:00:00' && departureTime !== '00:00:00' && arrivalTime !== departureTime) {
+          type = 'Stop'; // Arrives and departs
+        } else if (arrivalTime === '00:00:00' || arrivalTime === departureTime) {
+          type = 'Departure'; // Starts here or is a pass-through with no explicit arrival
+        } else if (departureTime === '00:00:00' || arrivalTime !== departureTime) {
+          type = 'Arrival'; // Terminates here or is a stop with no explicit departure (unlikely)
+        } else {
+          type = 'Pass-Through';
+        }
+        
+        return {
+          ...train,
+          type,
+          arrival: arrivalTime,
+          departure: departureTime
+        };
+      });
+
+      setStationTrains({
+        arrivals: categorizedTrains.filter(t => t.type === 'Arrival' || t.type === 'Stop').sort((a, b) => a.arrival.localeCompare(b.arrival)),
+        departures: categorizedTrains.filter(t => t.type === 'Departure' || t.type === 'Stop').sort((a, b) => a.departure.localeCompare(b.departure)),
+        allTrains: categorizedTrains
+      });
+      
+    } catch (error) {
+      console.error("Error fetching station trains:", error);
+      setStationTrains({ arrivals: [], departures: [], allTrains: [] });
+    }
+  };
 
   // Smart positioning algorithm for better station layout
   const processData = useCallback((data) => {
@@ -91,7 +148,7 @@ function Dashboard() {
       // Position cities in a larger circular layout for better visibility
       const cities = Object.keys(cityGroups);
       const cityPositions = {};
-      const radius = 250; // Increased radius for better spacing
+      const radius = 400; // Increased radius for better spacing
       
       cities.forEach((city, index) => {
         const angle = (index * 2 * Math.PI) / cities.length;
@@ -130,8 +187,8 @@ function Dashboard() {
               const dx = station.x - other.x;
               const dy = station.y - other.y;
               const dist = Math.sqrt(dx * dx + dy * dy) || 1;
-              if (dist < 120) { // Increased minimum distance
-                const force = 1000 / (dist * dist);
+              if (dist < 200) { // Increased minimum distance
+                const force = 100000 / (dist * dist);
                 fx += (dx / dist) * force;
                 fy += (dy / dist) * force;
               }
@@ -175,7 +232,7 @@ function Dashboard() {
 
   // Handle backend data fetching
   useEffect(() => {
-    const backend_url = "http://127.0.0.1:8000"
+    const backend_url = " https://sih-25-sn32.onrender.com"
     axios.get(`${backend_url}/stations/map`)
       .then(response => {
         setFetchedData(response.data.stations);
@@ -210,14 +267,29 @@ function Dashboard() {
     
     return () => clearInterval(interval);
   }, [isAnimating]);
+  
+  // Assigns color based on the first letter of the station name
+  const getStationColor = (stationType, stationName) => {
+    if (!stationName) return '#9ca3af'; 
 
-  const getStationColor = (type) => {
-    switch (type) {
-      case 'Interstate': return '#2563eb'; 
-      case 'Terminal': return '#dc2626';     
-      case 'Local': return '#059669';     
-      default: return '#6b7280';          
+    const firstLetter = stationName.charAt(0).toUpperCase();
+
+    if (firstLetter >= 'A' && firstLetter <= 'I') {
+      return '#2563eb'; // Blue (A-I)
+    } else if (firstLetter >= 'J' && firstLetter <= 'R') {
+      return '#dc2626'; // Red (J-R)
+    } else if (firstLetter >= 'S' && firstLetter <= 'Z') {
+      return '#059669'; // Green (S-Z)
+    } else {
+      return '#f59e0b'; // Amber/Orange for numbers/symbols/other
     }
+  };
+
+  // 🌟 NEW HANDLER for Optimize button click
+  const handleOptimizeClick = () => {
+    console.log(`Optimizing station: ${selectedStation.name}`);
+    setShowToast(true);
+    // You could add an API call here to actually optimize the station
   };
 
   const handleMouseDown = (e) => {
@@ -307,8 +379,9 @@ function Dashboard() {
     return { x, y };
   };
 
-  const handleStationClick = (station) => {
+const handleStationClick = (station) => {
     setSelectedStation(station);
+    fetchStationTrains(station.name); 
     setShowPopup(true);
   };
 
@@ -350,6 +423,11 @@ function Dashboard() {
 
   return (
     <div className="h-screen w-full bg-gray-50 flex flex-col">
+      <Toast 
+        message={`${selectedStation?.name} is now optimized!`} 
+        show={showToast} 
+        onClose={() => setShowToast(false)} 
+      />
       {/* Navbar */}
       <div className="bg-white text-gray-800 px-6 py-4 shadow-lg border-b flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-700">Train Network Dashboard</h1>
@@ -369,7 +447,7 @@ function Dashboard() {
             className="flex items-center space-x-2 px-4 py-2 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors shadow-md"
           >
             {isAnimating ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-            <span>{isAnimating ? 'Pause' : 'Start'} Animation</span>
+            <span>{isAnimating ? 'Pause' : 'Start'} Simulating Trains</span>
           </button>
           
           <div className="text-sm text-gray-600 font-medium">
@@ -390,19 +468,19 @@ function Dashboard() {
         </div>
       </div>
       
-      {/* Legend */}
+      {/* Legend - Updated to reflect the alphabetical coloring scheme */}
       <div className="bg-white px-6 py-2 flex items-center space-x-6 text-sm text-gray-700 border-b border-gray-200 shadow-sm">
         <div className="flex items-center space-x-2">
           <div className="w-3 h-3 rounded-full bg-blue-600"></div>
-          <span>Interstate</span>
+          <span>Interstate (Blue)</span>
         </div>
         <div className="flex items-center space-x-2">
           <div className="w-3 h-3 rounded-full bg-red-500"></div>
-          <span>Terminal</span>
+          <span>Terminal (Red)</span>
         </div>
         <div className="flex items-center space-x-2">
           <div className="w-3 h-3 rounded-full bg-green-600"></div>
-          <span>Local</span>
+          <span>Local (Green)</span>
         </div>
         <div className="flex items-center space-x-2">
           <div className="w-3 h-3 bg-orange-400"></div>
@@ -505,7 +583,8 @@ function Dashboard() {
                 cx={station.x}
                 cy={station.y}
                 r="15"
-                fill={getStationColor(station.type)}
+                // 🌟 Passing station.name to determine the color
+                fill={getStationColor(station.type, station.name)} 
                 opacity="0.2"
                 filter="url(#glow)"
               />
@@ -514,7 +593,8 @@ function Dashboard() {
                 cx={station.x}
                 cy={station.y}
                 r="10"
-                fill={getStationColor(station.type)}
+                // 🌟 Passing station.name to determine the color
+                fill={getStationColor(station.type, station.name)}
                 stroke="#ffffff"
                 strokeWidth="2"
                 className="cursor-pointer hover:r-12 transition-all"
@@ -553,40 +633,87 @@ function Dashboard() {
 
       {/* Station Details Popup */}
       {showPopup && selectedStation && (
-        <div className="fixed inset-0 bg-black/45  flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4 max-h-96 overflow-hidden">
-            {/* Popup Header */}
+        <div className="fixed inset-0 bg-black/45 flex items-center justify-center z-50">
+          {/* 🌟 MODIFIED: max-w-lg for bigger size and max-h increased */}
+          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full mx-4 max-h-[500px] overflow-hidden">
+            
+            {/* 🌟 MODIFIED HEADER: Added Optimize Button */}
             <div className="bg-gradient-to-r from-blue-600 to-blue-700 text-white px-6 py-4 flex justify-between items-center">
               <div>
                 <h3 className="text-lg font-bold">{selectedStation.name}</h3>
                 <p className="text-sm text-blue-100">{selectedStation.city} • {selectedStation.type}</p>
               </div>
-              <button 
-                onClick={() => setShowPopup(false)}
-                className="text-blue-100 hover:text-white text-2xl font-bold w-8 h-8 flex items-center justify-center rounded hover:bg-blue-500 transition-colors"
-              >
-                ×
-              </button>
+              <div className="flex items-center space-x-3">
+                {/* Optimize Button */}
+                <button
+                  onClick={handleOptimizeClick}
+                  className="flex items-center space-x-1 px-3 py-1 bg-green-500 hover:bg-green-600 text-white rounded-lg transition-colors text-sm font-semibold shadow-md"
+                >
+                  <Zap className="w-4 h-4" />
+                  <span>Optimize</span>
+                </button>
+                {/* Close Button */}
+                <button 
+                  onClick={() => setShowPopup(false)}
+                  className="text-blue-100 hover:text-white text-2xl font-bold w-8 h-8 flex items-center justify-center rounded hover:bg-blue-500 transition-colors"
+                >
+                  ×
+                </button>
+              </div>
             </div>
 
             {/* Popup Content */}
-            <div className="p-6 overflow-y-auto max-h-80">
-              {(() => {
-                const { arrivals, departures } = getStationTrains(selectedStation.id);
-                return (
-                  <div className="space-y-4">
-                    {/* Departures */}
+            {/* 🌟 MODIFIED: max-h-96 for more content space */}
+            <div className="p-6 overflow-y-auto max-h-96"> 
+              {stationTrains.allTrains.length === 0 ? (
+                <div className="text-center p-8 text-gray-500">
+                  Loading train schedule...
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  
+                  {/* Station Stats - UPDATED with total count */}
+                  <div className="bg-gray-100 p-4 rounded-lg">
+                    <h4 className="text-sm font-semibold text-gray-800 mb-3">Station Information</h4>
+                    <div className="grid grid-cols-2 gap-3 text-xs">
+                      <div className="bg-white p-2 rounded">
+                        <span className="text-gray-600">Type:</span>
+                        <span className="ml-1 font-medium text-gray-800">{selectedStation.type}</span>
+                      </div>
+                      <div className="bg-white p-2 rounded">
+                        <span className="text-gray-600">City:</span>
+                        <span className="ml-1 font-medium text-gray-800">{selectedStation.city}</span>
+                      </div>
+                      <div className="bg-white p-2 rounded">
+                        <span className="text-gray-600">Total Trains:</span>
+                        <span className="ml-1 font-medium text-blue-600">{stationTrains.allTrains.length}</span>
+                      </div>
+                      <div className="bg-white p-2 rounded">
+                        <span className="text-gray-600">Status:</span>
+                        <span className="ml-1 font-medium text-green-600">Active</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Arrivals and Departures */}
+                  <div className="grid grid-cols-2 gap-4">
+                    
+                    {/* Departures Column */}
                     <div>
                       <h4 className="text-md font-semibold text-gray-800 mb-3 flex items-center">
                         <div className="w-3 h-3 bg-green-500 rounded-full mr-2"></div>
-                        Departures ({departures.length})
+                        Departures ({stationTrains.departures.length})
                       </h4>
-                      {departures.length > 0 ? (
-                        <div className="space-y-2">
-                          {departures.map((train, index) => (
-                            <div key={index} className="bg-green-50 p-3 rounded-lg border-l-4 border-green-500">
-                              <div className="text-sm font-medium text-gray-800">To: {train.to}</div>
-                              <div className="text-xs text-gray-600 mt-1">{train.city}</div>
+                      {stationTrains.departures.length > 0 ? (
+                        // 🌟 MODIFIED: Increased max-h for scrollable list
+                        <div className="space-y-2 max-h-60 overflow-y-auto pr-2"> 
+                          {stationTrains.departures.map((train) => (
+                            <div key={train.train_id} className="bg-green-50 p-3 rounded-lg border-l-4 border-green-500">
+                              <div className="text-sm font-medium text-gray-800">{train.train_name} ({train.train_id})</div>
+                              <div className="text-xs text-gray-600 mt-1">
+                                Departs: <span className="font-semibold">{train.departure}</span>
+                                {train.type === 'Stop' ? ` (Arr: ${train.arrival})` : ''}
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -595,18 +722,22 @@ function Dashboard() {
                       )}
                     </div>
 
-                    {/* Arrivals */}
+                    {/* Arrivals Column */}
                     <div>
                       <h4 className="text-md font-semibold text-gray-800 mb-3 flex items-center">
                         <div className="w-3 h-3 bg-blue-500 rounded-full mr-2"></div>
-                        Arrivals ({arrivals.length})
+                        Arrivals ({stationTrains.arrivals.length})
                       </h4>
-                      {arrivals.length > 0 ? (
-                        <div className="space-y-2">
-                          {arrivals.map((train, index) => (
-                            <div key={index} className="bg-blue-50 p-3 rounded-lg border-l-4 border-blue-500">
-                              <div className="text-sm font-medium text-gray-800">From: {train.from}</div>
-                              <div className="text-xs text-gray-600 mt-1">{train.city}</div>
+                      {stationTrains.arrivals.length > 0 ? (
+                         // 🌟 MODIFIED: Increased max-h for scrollable list
+                        <div className="space-y-2 max-h-60 overflow-y-auto pr-2">
+                          {stationTrains.arrivals.map((train) => (
+                            <div key={train.train_id} className="bg-blue-50 p-3 rounded-lg border-l-4 border-blue-500">
+                              <div className="text-sm font-medium text-gray-800">{train.train_name} ({train.train_id})</div>
+                              <div className="text-xs text-gray-600 mt-1">
+                                Arrives: <span className="font-semibold">{train.arrival}</span>
+                                {train.type === 'Stop' ? ` (Dep: ${train.departure})` : ''}
+                              </div>
                             </div>
                           ))}
                         </div>
@@ -614,32 +745,9 @@ function Dashboard() {
                         <p className="text-sm text-gray-500 italic bg-gray-50 p-3 rounded">No arrivals scheduled</p>
                       )}
                     </div>
-
-                    {/* Station Stats */}
-                    <div className="bg-gray-100 p-4 rounded-lg">
-                      <h4 className="text-sm font-semibold text-gray-800 mb-3">Station Information</h4>
-                      <div className="grid grid-cols-2 gap-3 text-xs">
-                        <div className="bg-white p-2 rounded">
-                          <span className="text-gray-600">Type:</span>
-                          <span className="ml-1 font-medium text-gray-800">{selectedStation.type}</span>
-                        </div>
-                        <div className="bg-white p-2 rounded">
-                          <span className="text-gray-600">City:</span>
-                          <span className="ml-1 font-medium text-gray-800">{selectedStation.city}</span>
-                        </div>
-                        <div className="bg-white p-2 rounded">
-                          <span className="text-gray-600">Total Routes:</span>
-                          <span className="ml-1 font-medium text-blue-600">{arrivals.length + departures.length}</span>
-                        </div>
-                        <div className="bg-white p-2 rounded">
-                          <span className="text-gray-600">Status:</span>
-                          <span className="ml-1 font-medium text-green-600">Active</span>
-                        </div>
-                      </div>
-                    </div>
                   </div>
-                );
-              })()}
+                </div>
+              )}
             </div>
 
             {/* Popup Footer */}
@@ -651,9 +759,10 @@ function Dashboard() {
                 Close
               </button>
             </div>
+            
           </div>
-        </div>
-      )}
+        </div> 
+      )} 
     </div>
   );
 }

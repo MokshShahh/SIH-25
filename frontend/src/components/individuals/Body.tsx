@@ -128,7 +128,7 @@ function Body() {
     <div className="flex h-screen bg-gray-50 overflow-hidden">
       <div className="flex-1 flex flex-col justify-center items-start p-8 min-w-0">
         <h1 className="text-5xl font-bold text-gray-800 mb-6 leading-tight">
-          Welcome to the Train.....
+          Welcome to the AlgoYatri
         </h1>
         <p className="text-gray-600 text-xl leading-relaxed max-w-lg">
           Explore your train's stats.
