@@ -29,6 +29,11 @@ function Navbar() {
                 <AnimatedText>Dashboard</AnimatedText>
               </NavLink>
             </li>
+            <li className="cursor-pointer transition-colors">
+              <NavLink to="/mumbai-local" className={(e) => { return e.isActive ? "bg-green-500 text-white p-1.5 rounded-lg" : "" }}>
+                <AnimatedText>Mumbai Local</AnimatedText>
+              </NavLink>
+            </li>
           </ul>
         </div>
 

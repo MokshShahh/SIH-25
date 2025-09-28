@@ -3,7 +3,6 @@ import { ZoomIn, ZoomOut, Home, Play, Pause, Zap } from 'lucide-react'; // Added
 import { NavLink } from 'react-router-dom';
 import axios from 'axios';
 
-//deployement commit
 const Toast = ({ message, show, onClose }) => {
     useEffect(() => {
         if (show) {
