@@ -167,7 +167,7 @@ function EnhancedDashboard() {
   const [viewBox, setViewBox] = useState({ x: -400, y: -300, width: 800, height: 600 });
   const [isDragging, setIsDragging] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
-  const [isAnimating, setIsAnimating] = useState(true);
+  const [isAnimating, setIsAnimating] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
   const [showOptModal, setShowOptModal] = useState(false);
@@ -235,7 +235,7 @@ function EnhancedDashboard() {
   });
 
   // Handle tab navigation
-  const handleTabClick = (tabId) => {
+  const handleTabClick = (tabId: any) => {
     setActiveTab(tabId);
     
     // Navigate to different routes based on tab
