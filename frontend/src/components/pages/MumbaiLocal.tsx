@@ -1,6 +1,156 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-import { Play, Pause, RotateCcw, Train, MapPin, Clock } from 'lucide-react';
+import { Play, Pause, RotateCcw, Train, MapPin, Clock, Zap, CheckCircle, AlertTriangle } from 'lucide-react';
+
+// === Helper Components for Optimization ===
+
+const Toast = ({ message, show, onClose, type = 'success' }) => {
+  useEffect(() => {
+    if (show) {
+      const timer = setTimeout(onClose, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [show, onClose]);
+
+  if (!show) return null;
+
+  return (
+    <div className={`fixed top-20 right-4 z-50 p-4 ${type === 'success' ? 'bg-green-500' : 'bg-orange-500'} text-white rounded-lg shadow-xl transition-all duration-300 animate-slide-in-right flex items-center gap-2`}>
+      {type === 'success' ? <CheckCircle className="w-5 h-5" /> : <AlertTriangle className="w-5 h-5" />}
+      <span>{message}</span>
+    </div>
+  );
+};
+
+const OptimizationModal = ({ isOpen, onClose, onOptimize }) => {
+  const [objectives, setObjectives] = useState({
+    minimizeDelay: true,
+    maxThroughput: true,
+    balanceLoad: false
+  });
+  const [isRunning, setIsRunning] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  const handleOptimize = () => {
+    setIsRunning(true);
+    setProgress(0);
+    
+    const interval = setInterval(() => {
+      setProgress(prev => {
+        if (prev >= 100) {
+          clearInterval(interval);
+          setTimeout(() => {
+            setIsRunning(false);
+            onOptimize();
+            onClose();
+          }, 500);
+          return 100;
+        }
+        return prev + 2;
+      });
+    }, 90);
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-[60]">
+      <div className="bg-white rounded-xl shadow-2xl max-w-md w-full mx-4">
+        <div className="bg-gradient-to-r from-purple-600 to-blue-600 text-white px-6 py-4 rounded-t-xl">
+          <h3 className="text-xl font-bold flex items-center gap-2">
+            <Zap className="w-6 h-6" />
+            Network Optimization
+          </h3>
+        </div>
+
+        <div className="p-6">
+          <h4 className="text-sm font-bold text-gray-800 mb-4">Optimization Objectives</h4>
+          
+          <div className="space-y-3 mb-6">
+            <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
+              <input
+                type="checkbox"
+                checked={objectives.minimizeDelay}
+                onChange={(e) => setObjectives({...objectives, minimizeDelay: e.target.checked})}
+                className="w-5 h-5 text-purple-600 rounded"
+              />
+              <div>
+                <div className="text-sm font-medium text-gray-900">Minimize Global Delay</div>
+                <div className="text-xs text-gray-500">Reduce average delay across all trains</div>
+              </div>
+            </label>
+
+            <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
+              <input
+                type="checkbox"
+                checked={objectives.maxThroughput}
+                onChange={(e) => setObjectives({...objectives, maxThroughput: e.target.checked})}
+                className="w-5 h-5 text-purple-600 rounded"
+              />
+              <div>
+                <div className="text-sm font-medium text-gray-900">Maximize Throughput</div>
+                <div className="text-xs text-gray-500">Increase number of trains processed</div>
+              </div>
+            </label>
+
+            <label className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer">
+              <input
+                type="checkbox"
+                checked={objectives.balanceLoad}
+                onChange={(e) => setObjectives({...objectives, balanceLoad: e.target.checked})}
+                className="w-5 h-5 text-purple-600 rounded"
+              />
+              <div>
+                <div className="text-sm font-medium text-gray-900">Balance Load Distribution</div>
+                <div className="text-xs text-gray-500">Distribute traffic evenly across routes</div>
+              </div>
+            </label>
+          </div>
+
+          {isRunning && (
+            <div className="mb-6">
+              <div className="flex justify-between text-sm mb-2">
+                <span className="text-gray-600">Optimizing...</span>
+                <span className="text-purple-600 font-semibold">{progress}%</span>
+              </div>
+              <div className="w-full bg-gray-200 rounded-full h-3">
+                <div 
+                  className="bg-gradient-to-r from-purple-600 to-blue-600 h-3 rounded-full transition-all duration-300"
+                  style={{ width: `${progress}%` }}
+                ></div>
+              </div>
+            </div>
+          )}
+
+          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
+            <div className="text-xs text-gray-600 mb-1">Estimated Time</div>
+            <div className="text-2xl font-bold text-blue-600">~10 seconds</div>
+          </div>
+
+          <div className="flex gap-3">
+            <button
+              onClick={handleOptimize}
+              disabled={isRunning}
+              className="flex-1 py-3 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 disabled:from-gray-400 disabled:to-gray-500 text-white rounded-lg font-semibold transition-all flex items-center justify-center gap-2"
+            >
+              <Zap className="w-5 h-5" />
+              {isRunning ? 'Optimizing...' : 'Start Optimization'}
+            </button>
+            <button
+              onClick={onClose}
+              disabled={isRunning}
+              className="px-6 py-3 bg-gray-200 hover:bg-gray-300 disabled:bg-gray-100 text-gray-700 rounded-lg font-semibold transition-colors"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// === Main MumbaiLocal Component ===
 
 const MumbaiLocal = () => {
   const [isSimulationRunning, setIsSimulationRunning] = useState(false);
@@ -8,6 +158,20 @@ const MumbaiLocal = () => {
   const [selectedStation, setSelectedStation] = useState(null);
   const [showStationModal, setShowStationModal] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
+  
+  // New State for Optimization
+  const [showOptModal, setShowOptModal] = useState(false);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState('');
+
+
+  // Handler for Optimization confirmation
+  const handleOptimizationConfirm = () => {
+    setToastMessage('Optimization process completed successfully! New schedules applied.');
+    setShowToast(true);
+    // You would typically trigger a re-render of trains/map with the new optimized positions here
+  };
+
 
   // Mumbai Local Lines Data with all real stations
   const lines = {
@@ -699,6 +863,8 @@ const MumbaiLocal = () => {
 
   return (
     <div className="h-screen w-full bg-gray-50 flex flex-col">
+      <Toast message={toastMessage} show={showToast} onClose={() => setShowToast(false)} />
+      
       {/* Header */}
       <div className="bg-white text-gray-800 px-6 py-4 shadow-lg border-b flex justify-between items-center">
         <div className="flex items-center space-x-4">
@@ -716,7 +882,7 @@ const MumbaiLocal = () => {
         </NavLink>
       </div>
       
-      {/* Controls */}
+      {/* Controls - The new button is added here */}
       <div className="bg-white px-6 py-3 flex items-center justify-between border-b border-gray-200 shadow-sm">
         <div className="flex items-center space-x-4">
           <button
@@ -727,6 +893,15 @@ const MumbaiLocal = () => {
           >
             {isSimulationRunning ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
             <span>{isSimulationRunning ? 'Pause' : 'Start'} Simulation</span>
+          </button>
+          
+          {/* OPTIMIZE BUTTON ADDED HERE */}
+          <button
+            onClick={() => setShowOptModal(true)}
+            className="flex items-center space-x-2 px-4 py-2 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors shadow-md"
+          >
+            <Zap className="w-4 h-4" />
+            <span>Optimize</span>
           </button>
           
           <button
@@ -832,7 +1007,7 @@ const MumbaiLocal = () => {
         </div>
       </div>
       
-      {/* Station Details Modal */}
+      {/* Station Details Modal - kept for completeness */}
       {showStationModal && selectedStation && (
         <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg shadow-xl max-w-md w-full mx-4">
@@ -899,6 +1074,44 @@ const MumbaiLocal = () => {
           </div>
         </div>
       )}
+      
+      {/* Optimization Modal Component */}
+      <OptimizationModal 
+        isOpen={showOptModal} 
+        onClose={() => setShowOptModal(false)}
+        onOptimize={handleOptimizationConfirm}
+      />
+      
+      <style>{`
+        @keyframes slide-in-right {
+          from {
+            transform: translateX(100%);
+            opacity: 0;
+          }
+          to {
+            transform: translateX(0);
+            opacity: 1;
+          }
+        }
+        
+        .animate-slide-in-right {
+          animation: slide-in-right 0.3s ease-out;
+        }
+        
+        ::-webkit-scrollbar {
+          width: 8px;
+          height: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+          background: #f1f5f9;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+          background: #cbd5e1;
+          border-radius: 4px;
+        }
+      `}</style>
     </div>
   );
 };
