@@ -1,10 +1,11 @@
 import { useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import * as THREE from "three";
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
 
-
 function Body() {
   const canvasRef = useRef<HTMLDivElement>(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
     if (!canvasRef.current) return;
@@ -15,13 +16,24 @@ function Body() {
 
     // Camera - Isometric
     const camera = new THREE.PerspectiveCamera(35, 1, 0.1, 1000);
-    camera.position.set(8, 8, 8); // Isometric angle
+    camera.position.set(8, 8, 8);
     camera.lookAt(0, 0, 0);
 
     // Renderer
     const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
     renderer.setPixelRatio(window.devicePixelRatio);
     canvasRef.current.appendChild(renderer.domElement);
+
+    // Update background based on dark mode
+    const updateBackground = () => {
+      const isDark = document.documentElement.classList.contains('dark');
+      scene.background = new THREE.Color(isDark ? 0x1f2937 : 0xf5f5f5);
+    };
+    updateBackground();
+
+    // Listen for dark mode changes
+    const observer = new MutationObserver(updateBackground);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
 
     // Responsive sizing
     const updateSize = () => {
@@ -78,7 +90,7 @@ function Body() {
     const onMouseMove = (event: MouseEvent) => {
       if (!isDragging) return;
       const deltaX = event.clientX - lastMouseX;
-      targetRotationY += deltaX * 0.01; // rotate only Y-axis
+      targetRotationY += deltaX * 0.01;
       lastMouseX = event.clientX;
       autoRotate = false;
     };
@@ -113,6 +125,7 @@ function Body() {
     return () => {
       window.removeEventListener("resize", updateSize);
       window.removeEventListener("mouseup", onMouseUp);
+      observer.disconnect();
       if (canvasRef.current) {
         canvasRef.current.removeEventListener("mousemove", onMouseMove);
         canvasRef.current.removeEventListener("mousedown", onMouseDown);
@@ -125,19 +138,25 @@ function Body() {
   }, []);
 
   return (
-    <div className="flex h-screen bg-gray-50 overflow-hidden">
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900 overflow-hidden transition-colors duration-300">
       <div className="flex-1 flex flex-col justify-center items-start p-8 min-w-0">
-        <h1 className="text-5xl font-bold text-gray-800 mb-6 leading-tight">
+        <h1 className="text-5xl font-bold text-gray-800 dark:text-gray-100 mb-6 leading-tight transition-colors duration-300">
           Welcome to the AlgoYatri
         </h1>
-        <p className="text-gray-600 text-xl leading-relaxed max-w-lg">
+        <p className="text-gray-600 dark:text-gray-400 text-xl leading-relaxed max-w-lg transition-colors duration-300">
           Explore your train's stats.
         </p>
         <div className="mt-8 flex gap-4">
-          <button className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+          <button 
+            onClick={() => navigate('/about')}
+            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium transition-colors"
+          >
             Learn More
           </button>
-          <button className="border border-gray-300 hover:border-gray-400 text-gray-700 px-6 py-3 rounded-lg font-medium transition-colors">
+          <button 
+            onClick={() => navigate('/signup')}
+            className="border border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 text-gray-700 dark:text-gray-300 px-6 py-3 rounded-lg font-medium transition-colors"
+          >
             Sign up
           </button>
         </div>
