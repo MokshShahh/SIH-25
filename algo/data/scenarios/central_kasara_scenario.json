@@ -2,22 +2,26 @@
   {
     "tid": "T1000",
     "origin": "KYN",
-    "dest": "VSD",
+    "dest": "KSRA",
     "route_blocks": [
       "KYN-SHAD",
       "SHAD-ABY",
       "ABY-TLA",
       "TLA-KDV",
-      "KDV-VSD"
+      "KDV-VSD",
+      "VSD-ASO",
+      "ASO-ATG",
+      "ATG-KDI",
+      "KDI-KSRA"
     ],
     "sched_departure_s": 21600,
-    "sched_arrival_s": 23100,
-    "priority": 8,
-    "type": "Express",
+    "sched_arrival_s": 24300,
+    "priority": 4,
+    "type": "Local",
     "line": "CENTRAL_KASARA",
     "dwell_rules": {
-      "major_station": 120,
-      "regular_station": 0
+      "major_station": 60,
+      "regular_station": 30
     }
   },
   {
@@ -37,12 +41,12 @@
     ],
     "sched_departure_s": 21900,
     "sched_arrival_s": 24600,
-    "priority": 6,
-    "type": "Fast",
+    "priority": 4,
+    "type": "Local",
     "line": "CENTRAL_KASARA",
     "dwell_rules": {
-      "major_station": 45,
-      "regular_station": 20
+      "major_station": 60,
+      "regular_station": 30
     }
   },
   {
@@ -72,9 +76,10 @@
   },
   {
     "tid": "T1003",
-    "origin": "SHAD",
+    "origin": "KYN",
     "dest": "ATG",
     "route_blocks": [
+      "KYN-SHAD",
       "SHAD-ABY",
       "ABY-TLA",
       "TLA-KDV",
@@ -83,19 +88,19 @@
       "ASO-ATG"
     ],
     "sched_departure_s": 22500,
-    "sched_arrival_s": 24300,
-    "priority": 8,
-    "type": "Express",
+    "sched_arrival_s": 24600,
+    "priority": 5,
+    "type": "MEMU",
     "line": "CENTRAL_KASARA",
     "dwell_rules": {
-      "major_station": 120,
-      "regular_station": 0
+      "major_station": 90,
+      "regular_station": 45
     }
   },
   {
     "tid": "T1004",
     "origin": "KYN",
-    "dest": "KSRA",
+    "dest": "KDI",
     "route_blocks": [
       "KYN-SHAD",
       "SHAD-ABY",
@@ -104,17 +109,16 @@
       "KDV-VSD",
       "VSD-ASO",
       "ASO-ATG",
-      "ATG-KDI",
-      "KDI-KSRA"
+      "ATG-KDI"
     ],
     "sched_departure_s": 22800,
-    "sched_arrival_s": 25500,
-    "priority": 4,
-    "type": "Local",
+    "sched_arrival_s": 25200,
+    "priority": 8,
+    "type": "Express",
     "line": "CENTRAL_KASARA",
     "dwell_rules": {
-      "major_station": 60,
-      "regular_station": 30
+      "major_station": 120,
+      "regular_station": 0
     }
   },
   {
@@ -134,12 +138,12 @@
     ],
     "sched_departure_s": 23100,
     "sched_arrival_s": 25800,
-    "priority": 4,
-    "type": "Local",
+    "priority": 6,
+    "type": "Fast",
     "line": "CENTRAL_KASARA",
     "dwell_rules": {
-      "major_station": 60,
-      "regular_station": 30
+      "major_station": 45,
+      "regular_station": 20
     }
   },
   {
@@ -159,40 +163,39 @@
     ],
     "sched_departure_s": 23400,
     "sched_arrival_s": 26100,
-    "priority": 6,
-    "type": "Fast",
+    "priority": 8,
+    "type": "Express",
     "line": "CENTRAL_KASARA",
     "dwell_rules": {
-      "major_station": 45,
-      "regular_station": 20
+      "major_station": 120,
+      "regular_station": 0
     }
   },
   {
     "tid": "T1007",
-    "origin": "SHAD",
-    "dest": "VSD",
+    "origin": "KDV",
+    "dest": "KDI",
     "route_blocks": [
-      "SHAD-ABY",
-      "ABY-TLA",
-      "TLA-KDV",
-      "KDV-VSD"
+      "KDV-VSD",
+      "VSD-ASO",
+      "ASO-ATG",
+      "ATG-KDI"
     ],
     "sched_departure_s": 23700,
     "sched_arrival_s": 24900,
-    "priority": 5,
-    "type": "MEMU",
+    "priority": 8,
+    "type": "Express",
     "line": "CENTRAL_KASARA",
     "dwell_rules": {
-      "major_station": 90,
-      "regular_station": 45
+      "major_station": 120,
+      "regular_station": 0
     }
   },
   {
     "tid": "T1008",
-    "origin": "KYN",
+    "origin": "SHAD",
     "dest": "KSRA",
     "route_blocks": [
-      "KYN-SHAD",
       "SHAD-ABY",
       "ABY-TLA",
       "TLA-KDV",
@@ -203,13 +206,13 @@
       "KDI-KSRA"
     ],
     "sched_departure_s": 24000,
-    "sched_arrival_s": 26700,
-    "priority": 6,
-    "type": "Fast",
+    "sched_arrival_s": 26400,
+    "priority": 5,
+    "type": "MEMU",
     "line": "CENTRAL_KASARA",
     "dwell_rules": {
-      "major_station": 45,
-      "regular_station": 20
+      "major_station": 90,
+      "regular_station": 45
     }
   },
   {
@@ -229,84 +232,81 @@
     ],
     "sched_departure_s": 24300,
     "sched_arrival_s": 27000,
-    "priority": 6,
-    "type": "Fast",
+    "priority": 4,
+    "type": "Local",
     "line": "CENTRAL_KASARA",
     "dwell_rules": {
-      "major_station": 45,
-      "regular_station": 20
+      "major_station": 60,
+      "regular_station": 30
     }
   },
   {
     "tid": "T1010",
     "origin": "KYN",
-    "dest": "KSRA",
+    "dest": "VSD",
     "route_blocks": [
       "KYN-SHAD",
       "SHAD-ABY",
       "ABY-TLA",
       "TLA-KDV",
-      "KDV-VSD",
-      "VSD-ASO",
-      "ASO-ATG",
-      "ATG-KDI",
-      "KDI-KSRA"
+      "KDV-VSD"
     ],
     "sched_departure_s": 24600,
-    "sched_arrival_s": 27300,
-    "priority": 4,
-    "type": "Local",
-    "line": "CENTRAL_KASARA",
-    "dwell_rules": {
-      "major_station": 60,
-      "regular_station": 30
-    }
-  },
-  {
-    "tid": "T1011",
-    "origin": "KYN",
-    "dest": "KSRA",
-    "route_blocks": [
-      "KYN-SHAD",
-      "SHAD-ABY",
-      "ABY-TLA",
-      "TLA-KDV",
-      "KDV-VSD",
-      "VSD-ASO",
-      "ASO-ATG",
-      "ATG-KDI",
-      "KDI-KSRA"
-    ],
-    "sched_departure_s": 24900,
-    "sched_arrival_s": 27600,
-    "priority": 4,
-    "type": "Local",
-    "line": "CENTRAL_KASARA",
-    "dwell_rules": {
-      "major_station": 60,
-      "regular_station": 30
-    }
-  },
-  {
-    "tid": "T1012",
-    "origin": "KYN",
-    "dest": "ASO",
-    "route_blocks": [
-      "KYN-SHAD",
-      "SHAD-ABY",
-      "ABY-TLA",
-      "TLA-KDV",
-      "KDV-VSD",
-      "VSD-ASO"
-    ],
-    "sched_departure_s": 25200,
-    "sched_arrival_s": 27000,
+    "sched_arrival_s": 26100,
     "priority": 8,
     "type": "Express",
     "line": "CENTRAL_KASARA",
     "dwell_rules": {
       "major_station": 120,
       "regular_station": 0
+    }
+  },
+  {
+    "tid": "T1011",
+    "origin": "KYN",
+    "dest": "ATG",
+    "route_blocks": [
+      "KYN-SHAD",
+      "SHAD-ABY",
+      "ABY-TLA",
+      "TLA-KDV",
+      "KDV-VSD",
+      "VSD-ASO",
+      "ASO-ATG"
+    ],
+    "sched_departure_s": 24900,
+    "sched_arrival_s": 27000,
+    "priority": 5,
+    "type": "MEMU",
+    "line": "CENTRAL_KASARA",
+    "dwell_rules": {
+      "major_station": 90,
+      "regular_station": 45
+    }
+  },
+  {
+    "tid": "T1012",
+    "origin": "KYN",
+    "dest": "KSRA",
+    "route_blocks": [
+      "KYN-SHAD",
+      "SHAD-ABY",
+      "ABY-TLA",
+      "TLA-KDV",
+      "KDV-VSD",
+      "VSD-ASO",
+      "ASO-ATG",
+      "ATG-KDI",
+      "KDI-KSRA"
+    ],
+    "sched_departure_s": 25200,
+    "sched_arrival_s": 27900,
+    "priority": 4,
+    "type": "Local",
+    "line": "CENTRAL_KASARA",
+    "dwell_rules": {
+      "major_station": 60,
+      "regular_station": 30
     }
   },
   {
@@ -326,12 +326,12 @@
     ],
     "sched_departure_s": 25500,
     "sched_arrival_s": 28200,
-    "priority": 6,
-    "type": "Fast",
+    "priority": 4,
+    "type": "Local",
     "line": "CENTRAL_KASARA",
     "dwell_rules": {
-      "major_station": 45,
-      "regular_station": 20
+      "major_station": 60,
+      "regular_station": 30
     }
   },
   {
@@ -362,89 +362,30 @@
   {
     "tid": "T1015",
     "origin": "KYN",
-    "dest": "VSD",
+    "dest": "KSRA",
     "route_blocks": [
       "KYN-SHAD",
       "SHAD-ABY",
       "ABY-TLA",
       "TLA-KDV",
-      "KDV-VSD"
+      "KDV-VSD",
+      "VSD-ASO",
+      "ASO-ATG",
+      "ATG-KDI",
+      "KDI-KSRA"
     ],
     "sched_departure_s": 26100,
-    "sched_arrival_s": 27600,
-    "priority": 8,
-    "type": "Express",
+    "sched_arrival_s": 28800,
+    "priority": 4,
+    "type": "Local",
     "line": "CENTRAL_KASARA",
     "dwell_rules": {
-      "major_station": 120,
-      "regular_station": 0
+      "major_station": 60,
+      "regular_station": 30
     }
   },
   {
     "tid": "T1016",
-    "origin": "TLA",
-    "dest": "ATG",
-    "route_blocks": [
-      "TLA-KDV",
-      "KDV-VSD",
-      "VSD-ASO",
-      "ASO-ATG"
-    ],
-    "sched_departure_s": 26400,
-    "sched_arrival_s": 27600,
-    "priority": 5,
-    "type": "MEMU",
-    "line": "CENTRAL_KASARA",
-    "dwell_rules": {
-      "major_station": 90,
-      "regular_station": 45
-    }
-  },
-  {
-    "tid": "T1017",
-    "origin": "KYN",
-    "dest": "ATG",
-    "route_blocks": [
-      "KYN-SHAD",
-      "SHAD-ABY",
-      "ABY-TLA",
-      "TLA-KDV",
-      "KDV-VSD",
-      "VSD-ASO",
-      "ASO-ATG"
-    ],
-    "sched_departure_s": 26700,
-    "sched_arrival_s": 28800,
-    "priority": 5,
-    "type": "MEMU",
-    "line": "CENTRAL_KASARA",
-    "dwell_rules": {
-      "major_station": 90,
-      "regular_station": 45
-    }
-  },
-  {
-    "tid": "T1018",
-    "origin": "KDV",
-    "dest": "KDI",
-    "route_blocks": [
-      "KDV-VSD",
-      "VSD-ASO",
-      "ASO-ATG",
-      "ATG-KDI"
-    ],
-    "sched_departure_s": 27000,
-    "sched_arrival_s": 28200,
-    "priority": 8,
-    "type": "Express",
-    "line": "CENTRAL_KASARA",
-    "dwell_rules": {
-      "major_station": 120,
-      "regular_station": 0
-    }
-  },
-  {
-    "tid": "T1019",
     "origin": "KYN",
     "dest": "KSRA",
     "route_blocks": [
@@ -458,14 +399,86 @@
       "ATG-KDI",
       "KDI-KSRA"
     ],
-    "sched_departure_s": 27300,
-    "sched_arrival_s": 30000,
-    "priority": 4,
-    "type": "Local",
+    "sched_departure_s": 26400,
+    "sched_arrival_s": 29100,
+    "priority": 8,
+    "type": "Express",
     "line": "CENTRAL_KASARA",
     "dwell_rules": {
-      "major_station": 60,
-      "regular_station": 30
+      "major_station": 120,
+      "regular_station": 0
+    }
+  },
+  {
+    "tid": "T1017",
+    "origin": "ABY",
+    "dest": "KSRA",
+    "route_blocks": [
+      "ABY-TLA",
+      "TLA-KDV",
+      "KDV-VSD",
+      "VSD-ASO",
+      "ASO-ATG",
+      "ATG-KDI",
+      "KDI-KSRA"
+    ],
+    "sched_departure_s": 26700,
+    "sched_arrival_s": 28800,
+    "priority": 8,
+    "type": "Express",
+    "line": "CENTRAL_KASARA",
+    "dwell_rules": {
+      "major_station": 120,
+      "regular_station": 0
+    }
+  },
+  {
+    "tid": "T1018",
+    "origin": "KYN",
+    "dest": "KSRA",
+    "route_blocks": [
+      "KYN-SHAD",
+      "SHAD-ABY",
+      "ABY-TLA",
+      "TLA-KDV",
+      "KDV-VSD",
+      "VSD-ASO",
+      "ASO-ATG",
+      "ATG-KDI",
+      "KDI-KSRA"
+    ],
+    "sched_departure_s": 27000,
+    "sched_arrival_s": 29700,
+    "priority": 6,
+    "type": "Fast",
+    "line": "CENTRAL_KASARA",
+    "dwell_rules": {
+      "major_station": 45,
+      "regular_station": 20
+    }
+  },
+  {
+    "tid": "T1019",
+    "origin": "SHAD",
+    "dest": "KSRA",
+    "route_blocks": [
+      "SHAD-ABY",
+      "ABY-TLA",
+      "TLA-KDV",
+      "KDV-VSD",
+      "VSD-ASO",
+      "ASO-ATG",
+      "ATG-KDI",
+      "KDI-KSRA"
+    ],
+    "sched_departure_s": 27300,
+    "sched_arrival_s": 29700,
+    "priority": 8,
+    "type": "Express",
+    "line": "CENTRAL_KASARA",
+    "dwell_rules": {
+      "major_station": 120,
+      "regular_station": 0
     }
   },
   {
@@ -495,16 +508,63 @@
   },
   {
     "tid": "T1021",
-    "origin": "SHAD",
+    "origin": "KYN",
     "dest": "VSD",
     "route_blocks": [
+      "KYN-SHAD",
       "SHAD-ABY",
       "ABY-TLA",
       "TLA-KDV",
       "KDV-VSD"
     ],
     "sched_departure_s": 27900,
-    "sched_arrival_s": 29100,
+    "sched_arrival_s": 29400,
+    "priority": 8,
+    "type": "Express",
+    "line": "CENTRAL_KASARA",
+    "dwell_rules": {
+      "major_station": 120,
+      "regular_station": 0
+    }
+  },
+  {
+    "tid": "T1022",
+    "origin": "KYN",
+    "dest": "KSRA",
+    "route_blocks": [
+      "KYN-SHAD",
+      "SHAD-ABY",
+      "ABY-TLA",
+      "TLA-KDV",
+      "KDV-VSD",
+      "VSD-ASO",
+      "ASO-ATG",
+      "ATG-KDI",
+      "KDI-KSRA"
+    ],
+    "sched_departure_s": 28200,
+    "sched_arrival_s": 30900,
+    "priority": 4,
+    "type": "Local",
+    "line": "CENTRAL_KASARA",
+    "dwell_rules": {
+      "major_station": 60,
+      "regular_station": 30
+    }
+  },
+  {
+    "tid": "T1023",
+    "origin": "KYN",
+    "dest": "VSD",
+    "route_blocks": [
+      "KYN-SHAD",
+      "SHAD-ABY",
+      "ABY-TLA",
+      "TLA-KDV",
+      "KDV-VSD"
+    ],
+    "sched_departure_s": 28500,
+    "sched_arrival_s": 30000,
     "priority": 5,
     "type": "MEMU",
     "line": "CENTRAL_KASARA",
@@ -514,56 +574,10 @@
     }
   },
   {
-    "tid": "T1022",
-    "origin": "TLA",
-    "dest": "KDI",
-    "route_blocks": [
-      "TLA-KDV",
-      "KDV-VSD",
-      "VSD-ASO",
-      "ASO-ATG",
-      "ATG-KDI"
-    ],
-    "sched_departure_s": 28200,
-    "sched_arrival_s": 29700,
-    "priority": 8,
-    "type": "Express",
-    "line": "CENTRAL_KASARA",
-    "dwell_rules": {
-      "major_station": 120,
-      "regular_station": 0
-    }
-  },
-  {
-    "tid": "T1023",
-    "origin": "SHAD",
-    "dest": "KDI",
-    "route_blocks": [
-      "SHAD-ABY",
-      "ABY-TLA",
-      "TLA-KDV",
-      "KDV-VSD",
-      "VSD-ASO",
-      "ASO-ATG",
-      "ATG-KDI"
-    ],
-    "sched_departure_s": 28500,
-    "sched_arrival_s": 30600,
-    "priority": 8,
-    "type": "Express",
-    "line": "CENTRAL_KASARA",
-    "dwell_rules": {
-      "major_station": 120,
-      "regular_station": 0
-    }
-  },
-  {
     "tid": "T1024",
-    "origin": "KYN",
+    "origin": "ABY",
     "dest": "KSRA",
     "route_blocks": [
-      "KYN-SHAD",
-      "SHAD-ABY",
       "ABY-TLA",
       "TLA-KDV",
       "KDV-VSD",
@@ -573,24 +587,7 @@
       "KDI-KSRA"
     ],
     "sched_departure_s": 28800,
-    "sched_arrival_s": 31500,
-    "priority": 4,
-    "type": "Local",
-    "line": "CENTRAL_KASARA",
-    "dwell_rules": {
-      "major_station": 60,
-      "regular_station": 30
-    }
-  },
-  {
-    "tid": "T1025",
-    "origin": "KDV",
-    "dest": "VSD",
-    "route_blocks": [
-      "KDV-VSD"
-    ],
-    "sched_departure_s": 29100,
-    "sched_arrival_s": 29400,
+    "sched_arrival_s": 30900,
     "priority": 5,
     "type": "MEMU",
     "line": "CENTRAL_KASARA",
@@ -600,7 +597,7 @@
     }
   },
   {
-    "tid": "T1026",
+    "tid": "T1025",
     "origin": "KYN",
     "dest": "KSRA",
     "route_blocks": [
@@ -614,33 +611,8 @@
       "ATG-KDI",
       "KDI-KSRA"
     ],
-    "sched_departure_s": 29400,
-    "sched_arrival_s": 32100,
-    "priority": 6,
-    "type": "Fast",
-    "line": "CENTRAL_KASARA",
-    "dwell_rules": {
-      "major_station": 45,
-      "regular_station": 20
-    }
-  },
-  {
-    "tid": "T1027",
-    "origin": "KYN",
-    "dest": "KSRA",
-    "route_blocks": [
-      "KYN-SHAD",
-      "SHAD-ABY",
-      "ABY-TLA",
-      "TLA-KDV",
-      "KDV-VSD",
-      "VSD-ASO",
-      "ASO-ATG",
-      "ATG-KDI",
-      "KDI-KSRA"
-    ],
-    "sched_departure_s": 29700,
-    "sched_arrival_s": 32400,
+    "sched_departure_s": 29100,
+    "sched_arrival_s": 31800,
     "priority": 4,
     "type": "Local",
     "line": "CENTRAL_KASARA",
@@ -650,7 +622,27 @@
     }
   },
   {
-    "tid": "T1028",
+    "tid": "T1026",
+    "origin": "KDV",
+    "dest": "KDI",
+    "route_blocks": [
+      "KDV-VSD",
+      "VSD-ASO",
+      "ASO-ATG",
+      "ATG-KDI"
+    ],
+    "sched_departure_s": 29400,
+    "sched_arrival_s": 30600,
+    "priority": 5,
+    "type": "MEMU",
+    "line": "CENTRAL_KASARA",
+    "dwell_rules": {
+      "major_station": 90,
+      "regular_station": 45
+    }
+  },
+  {
+    "tid": "T1027",
     "origin": "ABY",
     "dest": "KDI",
     "route_blocks": [
@@ -661,8 +653,8 @@
       "ASO-ATG",
       "ATG-KDI"
     ],
-    "sched_departure_s": 30000,
-    "sched_arrival_s": 31800,
+    "sched_departure_s": 29700,
+    "sched_arrival_s": 31500,
     "priority": 8,
     "type": "Express",
     "line": "CENTRAL_KASARA",
@@ -672,24 +664,48 @@
     }
   },
   {
-    "tid": "T1029",
-    "origin": "ABY",
-    "dest": "ATG",
+    "tid": "T1028",
+    "origin": "KDV",
+    "dest": "KDI",
     "route_blocks": [
-      "ABY-TLA",
-      "TLA-KDV",
       "KDV-VSD",
       "VSD-ASO",
-      "ASO-ATG"
+      "ASO-ATG",
+      "ATG-KDI"
     ],
-    "sched_departure_s": 30300,
-    "sched_arrival_s": 31800,
+    "sched_departure_s": 30000,
+    "sched_arrival_s": 31200,
     "priority": 5,
     "type": "MEMU",
     "line": "CENTRAL_KASARA",
     "dwell_rules": {
       "major_station": 90,
       "regular_station": 45
+    }
+  },
+  {
+    "tid": "T1029",
+    "origin": "KYN",
+    "dest": "KSRA",
+    "route_blocks": [
+      "KYN-SHAD",
+      "SHAD-ABY",
+      "ABY-TLA",
+      "TLA-KDV",
+      "KDV-VSD",
+      "VSD-ASO",
+      "ASO-ATG",
+      "ATG-KDI",
+      "KDI-KSRA"
+    ],
+    "sched_departure_s": 30300,
+    "sched_arrival_s": 33000,
+    "priority": 4,
+    "type": "Local",
+    "line": "CENTRAL_KASARA",
+    "dwell_rules": {
+      "major_station": 60,
+      "regular_station": 30
     }
   }
 ]

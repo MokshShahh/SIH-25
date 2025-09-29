@@ -1,13 +1,9 @@
 [
   {
     "tid": "T1000",
-    "origin": "CSMT",
-    "dest": "KYN",
+    "origin": "CHG",
+    "dest": "DIVA",
     "route_blocks": [
-      "CSMT-MSD",
-      "MSD-SNRD",
-      "SNRD-BY",
-      "BY-CHG",
       "CHG-CRD",
       "CRD-PR",
       "PR-DR",
@@ -23,30 +19,23 @@
       "MLND-TNA",
       "TNA-KLVA",
       "KLVA-MBQ",
-      "MBQ-DIVA",
-      "DIVA-KOPR",
-      "KOPR-DI",
-      "DI-THK",
-      "THK-KYN"
+      "MBQ-DIVA"
     ],
     "sched_departure_s": 21600,
-    "sched_arrival_s": 28800,
-    "priority": 4,
-    "type": "Local",
+    "sched_arrival_s": 26400,
+    "priority": 8,
+    "type": "Express",
     "line": "CENTRAL_MAIN",
     "dwell_rules": {
-      "major_station": 60,
-      "regular_station": 30
+      "major_station": 120,
+      "regular_station": 0
     }
   },
   {
     "tid": "T1001",
-    "origin": "CSMT",
-    "dest": "KYN",
+    "origin": "BY",
+    "dest": "DI",
     "route_blocks": [
-      "CSMT-MSD",
-      "MSD-SNRD",
-      "SNRD-BY",
       "BY-CHG",
       "CHG-CRD",
       "CRD-PR",
@@ -65,18 +54,16 @@
       "KLVA-MBQ",
       "MBQ-DIVA",
       "DIVA-KOPR",
-      "KOPR-DI",
-      "DI-THK",
-      "THK-KYN"
+      "KOPR-DI"
     ],
     "sched_departure_s": 21900,
-    "sched_arrival_s": 29100,
-    "priority": 6,
-    "type": "Fast",
+    "sched_arrival_s": 27600,
+    "priority": 5,
+    "type": "MEMU",
     "line": "CENTRAL_MAIN",
     "dwell_rules": {
-      "major_station": 45,
-      "regular_station": 20
+      "major_station": 90,
+      "regular_station": 45
     }
   },
   {
@@ -106,19 +93,22 @@
     ],
     "sched_departure_s": 22200,
     "sched_arrival_s": 27900,
-    "priority": 5,
-    "type": "MEMU",
+    "priority": 8,
+    "type": "Express",
     "line": "CENTRAL_MAIN",
     "dwell_rules": {
-      "major_station": 90,
-      "regular_station": 45
+      "major_station": 120,
+      "regular_station": 0
     }
   },
   {
     "tid": "T1003",
-    "origin": "BY",
-    "dest": "KYN",
+    "origin": "CSMT",
+    "dest": "KOPR",
     "route_blocks": [
+      "CSMT-MSD",
+      "MSD-SNRD",
+      "SNRD-BY",
       "BY-CHG",
       "CHG-CRD",
       "CRD-PR",
@@ -136,10 +126,7 @@
       "TNA-KLVA",
       "KLVA-MBQ",
       "MBQ-DIVA",
-      "DIVA-KOPR",
-      "KOPR-DI",
-      "DI-THK",
-      "THK-KYN"
+      "DIVA-KOPR"
     ],
     "sched_departure_s": 22500,
     "sched_arrival_s": 28800,
@@ -183,19 +170,21 @@
     ],
     "sched_departure_s": 22800,
     "sched_arrival_s": 30000,
-    "priority": 6,
-    "type": "Fast",
+    "priority": 4,
+    "type": "Local",
     "line": "CENTRAL_MAIN",
     "dwell_rules": {
-      "major_station": 45,
-      "regular_station": 20
+      "major_station": 60,
+      "regular_station": 30
     }
   },
   {
     "tid": "T1005",
-    "origin": "SNRD",
-    "dest": "DIVA",
+    "origin": "CSMT",
+    "dest": "KYN",
     "route_blocks": [
+      "CSMT-MSD",
+      "MSD-SNRD",
       "SNRD-BY",
       "BY-CHG",
       "CHG-CRD",
@@ -213,23 +202,30 @@
       "MLND-TNA",
       "TNA-KLVA",
       "KLVA-MBQ",
-      "MBQ-DIVA"
+      "MBQ-DIVA",
+      "DIVA-KOPR",
+      "KOPR-DI",
+      "DI-THK",
+      "THK-KYN"
     ],
     "sched_departure_s": 23100,
-    "sched_arrival_s": 28500,
-    "priority": 8,
-    "type": "Express",
+    "sched_arrival_s": 30300,
+    "priority": 6,
+    "type": "Fast",
     "line": "CENTRAL_MAIN",
     "dwell_rules": {
-      "major_station": 120,
-      "regular_station": 0
+      "major_station": 45,
+      "regular_station": 20
     }
   },
   {
     "tid": "T1006",
-    "origin": "CHG",
-    "dest": "KOPR",
+    "origin": "MSD",
+    "dest": "THK",
     "route_blocks": [
+      "MSD-SNRD",
+      "SNRD-BY",
+      "BY-CHG",
       "CHG-CRD",
       "CRD-PR",
       "PR-DR",
@@ -246,16 +242,18 @@
       "TNA-KLVA",
       "KLVA-MBQ",
       "MBQ-DIVA",
-      "DIVA-KOPR"
+      "DIVA-KOPR",
+      "KOPR-DI",
+      "DI-THK"
     ],
     "sched_departure_s": 23400,
-    "sched_arrival_s": 28500,
-    "priority": 5,
-    "type": "MEMU",
+    "sched_arrival_s": 30000,
+    "priority": 8,
+    "type": "Express",
     "line": "CENTRAL_MAIN",
     "dwell_rules": {
-      "major_station": 90,
-      "regular_station": 45
+      "major_station": 120,
+      "regular_station": 0
     }
   },
   {
@@ -290,18 +288,56 @@
     ],
     "sched_departure_s": 23700,
     "sched_arrival_s": 30900,
-    "priority": 4,
-    "type": "Local",
+    "priority": 6,
+    "type": "Fast",
     "line": "CENTRAL_MAIN",
     "dwell_rules": {
-      "major_station": 60,
-      "regular_station": 30
+      "major_station": 45,
+      "regular_station": 20
     }
   },
   {
     "tid": "T1008",
+    "origin": "SNRD",
+    "dest": "KYN",
+    "route_blocks": [
+      "SNRD-BY",
+      "BY-CHG",
+      "CHG-CRD",
+      "CRD-PR",
+      "PR-DR",
+      "DR-MTN",
+      "MTN-SIN",
+      "SIN-VVH",
+      "VVH-GC",
+      "GC-VK",
+      "VK-KJMG",
+      "KJMG-BND",
+      "BND-NHU",
+      "NHU-MLND",
+      "MLND-TNA",
+      "TNA-KLVA",
+      "KLVA-MBQ",
+      "MBQ-DIVA",
+      "DIVA-KOPR",
+      "KOPR-DI",
+      "DI-THK",
+      "THK-KYN"
+    ],
+    "sched_departure_s": 24000,
+    "sched_arrival_s": 30600,
+    "priority": 8,
+    "type": "Express",
+    "line": "CENTRAL_MAIN",
+    "dwell_rules": {
+      "major_station": 120,
+      "regular_station": 0
+    }
+  },
+  {
+    "tid": "T1009",
     "origin": "BY",
-    "dest": "DI",
+    "dest": "KYN",
     "route_blocks": [
       "BY-CHG",
       "CHG-CRD",
@@ -321,44 +357,12 @@
       "KLVA-MBQ",
       "MBQ-DIVA",
       "DIVA-KOPR",
-      "KOPR-DI"
-    ],
-    "sched_departure_s": 24000,
-    "sched_arrival_s": 29700,
-    "priority": 5,
-    "type": "MEMU",
-    "line": "CENTRAL_MAIN",
-    "dwell_rules": {
-      "major_station": 90,
-      "regular_station": 45
-    }
-  },
-  {
-    "tid": "T1009",
-    "origin": "CHG",
-    "dest": "DI",
-    "route_blocks": [
-      "CHG-CRD",
-      "CRD-PR",
-      "PR-DR",
-      "DR-MTN",
-      "MTN-SIN",
-      "SIN-VVH",
-      "VVH-GC",
-      "GC-VK",
-      "VK-KJMG",
-      "KJMG-BND",
-      "BND-NHU",
-      "NHU-MLND",
-      "MLND-TNA",
-      "TNA-KLVA",
-      "KLVA-MBQ",
-      "MBQ-DIVA",
-      "DIVA-KOPR",
-      "KOPR-DI"
+      "KOPR-DI",
+      "DI-THK",
+      "THK-KYN"
     ],
     "sched_departure_s": 24300,
-    "sched_arrival_s": 29700,
+    "sched_arrival_s": 30600,
     "priority": 5,
     "type": "MEMU",
     "line": "CENTRAL_MAIN",
@@ -449,10 +453,9 @@
   },
   {
     "tid": "T1012",
-    "origin": "CSMT",
+    "origin": "MSD",
     "dest": "KYN",
     "route_blocks": [
-      "CSMT-MSD",
       "MSD-SNRD",
       "SNRD-BY",
       "BY-CHG",
@@ -478,13 +481,13 @@
       "THK-KYN"
     ],
     "sched_departure_s": 25200,
-    "sched_arrival_s": 32400,
-    "priority": 6,
-    "type": "Fast",
+    "sched_arrival_s": 32100,
+    "priority": 8,
+    "type": "Express",
     "line": "CENTRAL_MAIN",
     "dwell_rules": {
-      "major_station": 45,
-      "regular_station": 20
+      "major_station": 120,
+      "regular_station": 0
     }
   },
   {
@@ -519,12 +522,12 @@
     ],
     "sched_departure_s": 25500,
     "sched_arrival_s": 32700,
-    "priority": 6,
-    "type": "Fast",
+    "priority": 4,
+    "type": "Local",
     "line": "CENTRAL_MAIN",
     "dwell_rules": {
-      "major_station": 45,
-      "regular_station": 20
+      "major_station": 60,
+      "regular_station": 30
     }
   },
   {
@@ -559,21 +562,19 @@
     ],
     "sched_departure_s": 25800,
     "sched_arrival_s": 33000,
-    "priority": 6,
-    "type": "Fast",
+    "priority": 4,
+    "type": "Local",
     "line": "CENTRAL_MAIN",
     "dwell_rules": {
-      "major_station": 45,
-      "regular_station": 20
+      "major_station": 60,
+      "regular_station": 30
     }
   },
   {
     "tid": "T1015",
-    "origin": "CSMT",
-    "dest": "KYN",
+    "origin": "SNRD",
+    "dest": "DIVA",
     "route_blocks": [
-      "CSMT-MSD",
-      "MSD-SNRD",
       "SNRD-BY",
       "BY-CHG",
       "CHG-CRD",
@@ -591,20 +592,16 @@
       "MLND-TNA",
       "TNA-KLVA",
       "KLVA-MBQ",
-      "MBQ-DIVA",
-      "DIVA-KOPR",
-      "KOPR-DI",
-      "DI-THK",
-      "THK-KYN"
+      "MBQ-DIVA"
     ],
     "sched_departure_s": 26100,
-    "sched_arrival_s": 33300,
-    "priority": 6,
-    "type": "Fast",
+    "sched_arrival_s": 31500,
+    "priority": 8,
+    "type": "Express",
     "line": "CENTRAL_MAIN",
     "dwell_rules": {
-      "major_station": 45,
-      "regular_station": 20
+      "major_station": 120,
+      "regular_station": 0
     }
   },
   {
@@ -650,7 +647,7 @@
   {
     "tid": "T1017",
     "origin": "CSMT",
-    "dest": "KYN",
+    "dest": "DIVA",
     "route_blocks": [
       "CSMT-MSD",
       "MSD-SNRD",
@@ -671,20 +668,16 @@
       "MLND-TNA",
       "TNA-KLVA",
       "KLVA-MBQ",
-      "MBQ-DIVA",
-      "DIVA-KOPR",
-      "KOPR-DI",
-      "DI-THK",
-      "THK-KYN"
+      "MBQ-DIVA"
     ],
     "sched_departure_s": 26700,
-    "sched_arrival_s": 33900,
-    "priority": 4,
-    "type": "Local",
+    "sched_arrival_s": 32700,
+    "priority": 8,
+    "type": "Express",
     "line": "CENTRAL_MAIN",
     "dwell_rules": {
-      "major_station": 60,
-      "regular_station": 30
+      "major_station": 120,
+      "regular_station": 0
     }
   },
   {
@@ -755,19 +748,23 @@
     ],
     "sched_departure_s": 27300,
     "sched_arrival_s": 34500,
-    "priority": 6,
-    "type": "Fast",
+    "priority": 4,
+    "type": "Local",
     "line": "CENTRAL_MAIN",
     "dwell_rules": {
-      "major_station": 45,
-      "regular_station": 20
+      "major_station": 60,
+      "regular_station": 30
     }
   },
   {
     "tid": "T1020",
-    "origin": "CHG",
+    "origin": "CSMT",
     "dest": "THK",
     "route_blocks": [
+      "CSMT-MSD",
+      "MSD-SNRD",
+      "SNRD-BY",
+      "BY-CHG",
       "CHG-CRD",
       "CRD-PR",
       "PR-DR",
@@ -789,17 +786,53 @@
       "DI-THK"
     ],
     "sched_departure_s": 27600,
-    "sched_arrival_s": 33300,
-    "priority": 5,
-    "type": "MEMU",
+    "sched_arrival_s": 34500,
+    "priority": 8,
+    "type": "Express",
     "line": "CENTRAL_MAIN",
     "dwell_rules": {
-      "major_station": 90,
-      "regular_station": 45
+      "major_station": 120,
+      "regular_station": 0
     }
   },
   {
     "tid": "T1021",
+    "origin": "CHG",
+    "dest": "KYN",
+    "route_blocks": [
+      "CHG-CRD",
+      "CRD-PR",
+      "PR-DR",
+      "DR-MTN",
+      "MTN-SIN",
+      "SIN-VVH",
+      "VVH-GC",
+      "GC-VK",
+      "VK-KJMG",
+      "KJMG-BND",
+      "BND-NHU",
+      "NHU-MLND",
+      "MLND-TNA",
+      "TNA-KLVA",
+      "KLVA-MBQ",
+      "MBQ-DIVA",
+      "DIVA-KOPR",
+      "KOPR-DI",
+      "DI-THK",
+      "THK-KYN"
+    ],
+    "sched_departure_s": 27900,
+    "sched_arrival_s": 33900,
+    "priority": 8,
+    "type": "Express",
+    "line": "CENTRAL_MAIN",
+    "dwell_rules": {
+      "major_station": 120,
+      "regular_station": 0
+    }
+  },
+  {
+    "tid": "T1022",
     "origin": "CSMT",
     "dest": "KYN",
     "route_blocks": [
@@ -828,51 +861,14 @@
       "DI-THK",
       "THK-KYN"
     ],
-    "sched_departure_s": 27900,
-    "sched_arrival_s": 35100,
-    "priority": 4,
-    "type": "Local",
-    "line": "CENTRAL_MAIN",
-    "dwell_rules": {
-      "major_station": 60,
-      "regular_station": 30
-    }
-  },
-  {
-    "tid": "T1022",
-    "origin": "SNRD",
-    "dest": "THK",
-    "route_blocks": [
-      "SNRD-BY",
-      "BY-CHG",
-      "CHG-CRD",
-      "CRD-PR",
-      "PR-DR",
-      "DR-MTN",
-      "MTN-SIN",
-      "SIN-VVH",
-      "VVH-GC",
-      "GC-VK",
-      "VK-KJMG",
-      "KJMG-BND",
-      "BND-NHU",
-      "NHU-MLND",
-      "MLND-TNA",
-      "TNA-KLVA",
-      "KLVA-MBQ",
-      "MBQ-DIVA",
-      "DIVA-KOPR",
-      "KOPR-DI",
-      "DI-THK"
-    ],
     "sched_departure_s": 28200,
-    "sched_arrival_s": 34500,
-    "priority": 5,
-    "type": "MEMU",
+    "sched_arrival_s": 35400,
+    "priority": 6,
+    "type": "Fast",
     "line": "CENTRAL_MAIN",
     "dwell_rules": {
-      "major_station": 90,
-      "regular_station": 45
+      "major_station": 45,
+      "regular_station": 20
     }
   },
   {
@@ -907,12 +903,12 @@
     ],
     "sched_departure_s": 28500,
     "sched_arrival_s": 35700,
-    "priority": 6,
-    "type": "Fast",
+    "priority": 4,
+    "type": "Local",
     "line": "CENTRAL_MAIN",
     "dwell_rules": {
-      "major_station": 45,
-      "regular_station": 20
+      "major_station": 60,
+      "regular_station": 30
     }
   },
   {
@@ -947,23 +943,19 @@
     ],
     "sched_departure_s": 28800,
     "sched_arrival_s": 36000,
-    "priority": 4,
-    "type": "Local",
+    "priority": 6,
+    "type": "Fast",
     "line": "CENTRAL_MAIN",
     "dwell_rules": {
-      "major_station": 60,
-      "regular_station": 30
+      "major_station": 45,
+      "regular_station": 20
     }
   },
   {
     "tid": "T1025",
-    "origin": "CSMT",
-    "dest": "KYN",
+    "origin": "CHG",
+    "dest": "THK",
     "route_blocks": [
-      "CSMT-MSD",
-      "MSD-SNRD",
-      "SNRD-BY",
-      "BY-CHG",
       "CHG-CRD",
       "CRD-PR",
       "PR-DR",
@@ -982,17 +974,16 @@
       "MBQ-DIVA",
       "DIVA-KOPR",
       "KOPR-DI",
-      "DI-THK",
-      "THK-KYN"
+      "DI-THK"
     ],
     "sched_departure_s": 29100,
-    "sched_arrival_s": 36300,
-    "priority": 6,
-    "type": "Fast",
+    "sched_arrival_s": 34800,
+    "priority": 8,
+    "type": "Express",
     "line": "CENTRAL_MAIN",
     "dwell_rules": {
-      "major_station": 45,
-      "regular_station": 20
+      "major_station": 120,
+      "regular_station": 0
     }
   },
   {
@@ -1067,12 +1058,12 @@
     ],
     "sched_departure_s": 29700,
     "sched_arrival_s": 36900,
-    "priority": 6,
-    "type": "Fast",
+    "priority": 4,
+    "type": "Local",
     "line": "CENTRAL_MAIN",
     "dwell_rules": {
-      "major_station": 45,
-      "regular_station": 20
+      "major_station": 60,
+      "regular_station": 30
     }
   },
   {
@@ -1117,9 +1108,10 @@
   },
   {
     "tid": "T1029",
-    "origin": "CHG",
+    "origin": "BY",
     "dest": "DIVA",
     "route_blocks": [
+      "BY-CHG",
       "CHG-CRD",
       "CRD-PR",
       "PR-DR",
@@ -1138,7 +1130,7 @@
       "MBQ-DIVA"
     ],
     "sched_departure_s": 30300,
-    "sched_arrival_s": 35100,
+    "sched_arrival_s": 35400,
     "priority": 5,
     "type": "MEMU",
     "line": "CENTRAL_MAIN",

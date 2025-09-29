@@ -9,7 +9,7 @@ const MumbaiLocal = () => {
   const [showStationModal, setShowStationModal] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  // Mumbai Local Lines Data with better spacing
+  // Mumbai Local Lines Data with all real stations
   const lines = {
     western: {
       name: 'Western Line',
@@ -17,33 +17,35 @@ const MumbaiLocal = () => {
       yOffset: 100,
       stations: [
         { id: 'CCG', name: 'Churchgate', x: 100, isTerminal: true },
-        { id: 'MRN', name: 'Marine Lines', x: 200 },
-        { id: 'CST', name: 'Charni Road', x: 300 },
-        { id: 'GRD', name: 'Grant Road', x: 400 },
-        { id: 'BCT', name: 'Mumbai Central', x: 500, isJunction: true },
-        { id: 'LPR', name: 'Lower Parel', x: 600 },
-        { id: 'EPH', name: 'Elphinstone', x: 700 },
-        // Dadar junction will be handled separately
-        { id: 'MHM', name: 'Matunga', x: 900 },
-        { id: 'MHG', name: 'Mahim', x: 1000 },
-        { id: 'BVI', name: 'Bandra', x: 1100, isJunction: true },
-        { id: 'KHR', name: 'Khar', x: 1200 },
-        { id: 'STR', name: 'Santacruz', x: 1300 },
-        { id: 'VLE', name: 'Vile Parle', x: 1400 },
-        { id: 'ADH', name: 'Andheri', x: 1500, isJunction: true },
-        { id: 'JVP', name: 'Jogeshwari', x: 1600 },
-        { id: 'RAM', name: 'Ram Mandir', x: 1700 },
-        { id: 'GRG', name: 'Goregaon', x: 1800 },
-        { id: 'MLV', name: 'Malad', x: 1900 },
-        { id: 'KDV', name: 'Kandivali', x: 2000 },
-        { id: 'BOR', name: 'Borivali', x: 2100, isJunction: true },
-        { id: 'DHN', name: 'Dahisar', x: 2200 },
-        { id: 'MRA', name: 'Mira Road', x: 2300 },
-        { id: 'BHP', name: 'Bhayander', x: 2400 },
-        { id: 'NLN', name: 'Naigaon', x: 2500 },
-        { id: 'VSV', name: 'Vasai Road', x: 2600, isJunction: true },
-        { id: 'NLU', name: 'Nallasopara', x: 2700 },
-        { id: 'VLJ', name: 'Virar', x: 2800, isTerminal: true }
+        { id: 'MRN', name: 'Marine Lines', x: 180 },
+        { id: 'CST', name: 'Charni Road', x: 260 },
+        { id: 'GRD', name: 'Grant Road', x: 340 },
+        { id: 'BCT', name: 'Mumbai Central', x: 420, isJunction: true },
+        { id: 'ML', name: 'Mahalaxmi', x: 500 },
+        { id: 'LPR', name: 'Lower Parel', x: 580 },
+        { id: 'EPH', name: 'Elphinstone', x: 660 },
+        { id: 'PDR', name: 'Prabhadevi', x: 720 },
+        // Dadar junction will be handled separately at x=800
+        { id: 'MTG', name: 'Matunga Road', x: 880 },
+        { id: 'MHM', name: 'Mahim', x: 960 },
+        { id: 'BVI', name: 'Bandra', x: 1040, isJunction: true },
+        { id: 'KHR', name: 'Khar Road', x: 1120 },
+        { id: 'STR', name: 'Santacruz', x: 1200 },
+        { id: 'VLP', name: 'Vile Parle', x: 1280 },
+        { id: 'ADH', name: 'Andheri', x: 1360, isJunction: true },
+        { id: 'JVP', name: 'Jogeshwari', x: 1440 },
+        { id: 'RAM', name: 'Ram Mandir', x: 1520 },
+        { id: 'GRG', name: 'Goregaon', x: 1600 },
+        { id: 'MLV', name: 'Malad', x: 1680 },
+        { id: 'KDV', name: 'Kandivali', x: 1760 },
+        { id: 'BOR', name: 'Borivali', x: 1840, isJunction: true },
+        { id: 'DHN', name: 'Dahisar', x: 1920 },
+        { id: 'MRA', name: 'Mira Road', x: 2000 },
+        { id: 'BHP', name: 'Bhayander', x: 2080 },
+        { id: 'NLN', name: 'Naigaon', x: 2160 },
+        { id: 'VSV', name: 'Vasai Road', x: 2240, isJunction: true },
+        { id: 'NLU', name: 'Nallasopara', x: 2320 },
+        { id: 'VLJ', name: 'Virar', x: 2400, isTerminal: true }
       ]
     },
     central: {
@@ -51,33 +53,45 @@ const MumbaiLocal = () => {
       color: '#1d4ed8',
       yOffset: 300,
       stations: [
-        // CSMT junction will be handled separately
-        { id: 'MJD', name: 'Masjid', x: 200 },
-        { id: 'SNH', name: 'Sandhurst Road', x: 300 },
-        { id: 'CYR', name: 'Currey Road', x: 400 },
+        // CSMT junction will be handled separately at x=100
+        { id: 'MJD', name: 'Masjid', x: 180 },
+        { id: 'SNH', name: 'Sandhurst Road', x: 260 },
+        { id: 'CYR', name: 'Currey Road', x: 340 },
+        { id: 'CNK', name: 'Chinchpokli', x: 420 },
         { id: 'PRL', name: 'Parel', x: 500 },
-        // Dadar junction will be handled separately
-        { id: 'MTN', name: 'Matunga', x: 900 },
+        { id: 'CTC', name: 'Cotton Green', x: 580 },
+        { id: 'BYC', name: 'Byculla', x: 660 },
+        { id: 'CHG', name: 'Chembur', x: 720 },
+        // Dadar junction will be handled separately at x=800
+        { id: 'MTN', name: 'Matunga', x: 880 },
+        { id: 'KNG', name: 'King Circle', x: 940 },
         { id: 'SIU', name: 'Sion', x: 1000 },
-        { id: 'KRL', name: 'Kurla', x: 1100, isJunction: true },
-        { id: 'VDR', name: 'Vidyavihar', x: 1200 },
-        { id: 'GHT', name: 'Ghatkopar', x: 1300, isJunction: true },
-        { id: 'VKH', name: 'Vikhroli', x: 1400 },
-        { id: 'KJV', name: 'Kanjurmarg', x: 1500 },
-        { id: 'BHD', name: 'Bhandup', x: 1600 },
-        { id: 'NHV', name: 'Nahur', x: 1700 },
-        { id: 'MLD', name: 'Mulund', x: 1800 },
-        { id: 'THN', name: 'Thane', x: 1900, isJunction: true },
-        { id: 'KLY', name: 'Kalyan', x: 2000, isJunction: true },
-        { id: 'VTN', name: 'Vithalwadi', x: 2100 },
-        { id: 'ULH', name: 'Ulhasnagar', x: 2200 },
-        { id: 'ATG', name: 'Ambernath', x: 2300 },
-        { id: 'BDL', name: 'Badlapur', x: 2400 },
-        { id: 'VGL', name: 'Vangani', x: 2500 },
-        { id: 'SYN', name: 'Shelu', x: 2600 },
-        { id: 'NRL', name: 'Neral', x: 2700 },
-        { id: 'BHP_C', name: 'Bhivpuri', x: 2800 },
-        { id: 'KJT', name: 'Karjat', x: 2900, isTerminal: true }
+        { id: 'KRL', name: 'Kurla', x: 1080, isJunction: true },
+        { id: 'VDR', name: 'Vidyavihar', x: 1160 },
+        { id: 'GHT', name: 'Ghatkopar', x: 1240, isJunction: true },
+        { id: 'VKH', name: 'Vikhroli', x: 1320 },
+        { id: 'KJV', name: 'Kanjurmarg', x: 1400 },
+        { id: 'BHD', name: 'Bhandup', x: 1480 },
+        { id: 'NHV', name: 'Nahur', x: 1560 },
+        { id: 'MLD', name: 'Mulund', x: 1640 },
+        { id: 'THN', name: 'Thane', x: 1720, isJunction: true },
+        { id: 'KLY', name: 'Kalyan', x: 1800, isJunction: true },
+        { id: 'DTR', name: 'Dombivli', x: 1880 },
+        { id: 'THK', name: 'Thakurli', x: 1960 },
+        { id: 'KLW', name: 'Kalwa', x: 2040 },
+        { id: 'MBR', name: 'Mumbra', x: 2120 },
+        { id: 'DIV', name: 'Diva', x: 2200 },
+        { id: 'KOJ', name: 'Kopar Khairane', x: 2280 },
+        { id: 'NLG', name: 'Nilaje', x: 2360 },
+        { id: 'VTN', name: 'Vithalwadi', x: 2440 },
+        { id: 'ULH', name: 'Ulhasnagar', x: 2520 },
+        { id: 'ATG', name: 'Ambernath', x: 2600 },
+        { id: 'BDL', name: 'Badlapur', x: 2680 },
+        { id: 'VGL', name: 'Vangani', x: 2760 },
+        { id: 'SHU', name: 'Shelu', x: 2840 },
+        { id: 'NRL', name: 'Neral', x: 2920 },
+        { id: 'BHP_C', name: 'Bhivpuri', x: 3000 },
+        { id: 'KJT', name: 'Karjat', x: 3080, isTerminal: true }
       ]
     },
     harbour: {
@@ -85,31 +99,32 @@ const MumbaiLocal = () => {
       color: '#059669',
       yOffset: 500,
       stations: [
-        // CSMT junction will be handled separately
-        { id: 'MJD_H', name: 'Masjid', x: 200 },
-        { id: 'SNH_H', name: 'Sandhurst Road', x: 300 },
-        { id: 'DKY', name: 'Dockyard Road', x: 400 },
-        { id: 'RBY', name: 'Reay Road', x: 500 },
-        { id: 'CTN', name: 'Cotton Green', x: 600 },
-        { id: 'SWR', name: 'Sewri', x: 700 },
-        { id: 'WDN', name: 'Wadala Road', x: 800 },
-        { id: 'GTB', name: 'GTB Nagar', x: 900 },
-        { id: 'CHB', name: 'Chunabhatti', x: 1000 },
-        { id: 'KRL_H', name: 'Kurla', x: 1100, isJunction: true },
-        { id: 'TVR', name: 'Tilak Nagar', x: 1200 },
-        { id: 'CHG', name: 'Chembur', x: 1300 },
-        { id: 'GVN', name: 'Govandi', x: 1400 },
-        { id: 'MNK', name: 'Mankhurd', x: 1500 },
-        { id: 'VAS', name: 'Vashi', x: 1600, isJunction: true },
-        { id: 'SPD', name: 'Sanpada', x: 1700 },
-        { id: 'JPN', name: 'Juinagar', x: 1800 },
-        { id: 'NRL_H', name: 'Nerul', x: 1900 },
-        { id: 'SWD', name: 'Seawoods', x: 2000 },
-        { id: 'BLP', name: 'Belapur', x: 2100 },
-        { id: 'KHG', name: 'Kharghar', x: 2200 },
-        { id: 'MNS', name: 'Mansarovar', x: 2300 },
-        { id: 'KHD', name: 'Khandeshwar', x: 2400 },
-        { id: 'PRB', name: 'Panvel', x: 2500, isTerminal: true }
+        // CSMT junction will be handled separately at x=100
+        { id: 'MJD_H', name: 'Masjid', x: 180 },
+        { id: 'SNH_H', name: 'Sandhurst Road', x: 260 },
+        { id: 'DKY', name: 'Dockyard Road', x: 340 },
+        { id: 'RBY', name: 'Reay Road', x: 420 },
+        { id: 'CTN', name: 'Cotton Green', x: 500 },
+        { id: 'SWR', name: 'Sewri', x: 580 },
+        { id: 'WDN', name: 'Wadala Road', x: 660 },
+        { id: 'WJN', name: 'Wadala', x: 720 },
+        { id: 'GTB', name: 'GTB Nagar', x: 800 },
+        { id: 'CHB', name: 'Chunabhatti', x: 880 },
+        { id: 'KRL_H', name: 'Kurla', x: 960, isJunction: true },
+        { id: 'TVR', name: 'Tilak Nagar', x: 1040 },
+        { id: 'CHG_H', name: 'Chembur', x: 1120 },
+        { id: 'GVN', name: 'Govandi', x: 1200 },
+        { id: 'MNK', name: 'Mankhurd', x: 1280 },
+        { id: 'VAS', name: 'Vashi', x: 1360, isJunction: true },
+        { id: 'SPD', name: 'Sanpada', x: 1440 },
+        { id: 'JPN', name: 'Juinagar', x: 1520 },
+        { id: 'NRL_H', name: 'Nerul', x: 1600 },
+        { id: 'SWD', name: 'Seawoods', x: 1680 },
+        { id: 'BLP', name: 'Belapur', x: 1760 },
+        { id: 'KHG', name: 'Kharghar', x: 1840 },
+        { id: 'MNS', name: 'Mansarovar', x: 1920 },
+        { id: 'KHD', name: 'Khandeshwar', x: 2000 },
+        { id: 'PRB', name: 'Panvel', x: 2080, isTerminal: true }
       ]
     }
   };
@@ -153,7 +168,7 @@ const MumbaiLocal = () => {
           id: `${lineKey}_up_${i}`,
           line: lineKey,
           direction: 'up',
-          position: Math.random() * 2900,
+          position: Math.random() * 3000,
           speed: 1.5 + Math.random() * 1.5,
           trainNumber: `${lineKey.charAt(0).toUpperCase()}${String(i + 1).padStart(2, '0')}`,
           nextStation: ''
@@ -166,7 +181,7 @@ const MumbaiLocal = () => {
           id: `${lineKey}_down_${i}`,
           line: lineKey,
           direction: 'down',
-          position: Math.random() * 2900,
+          position: Math.random() * 3000,
           speed: 1.5 + Math.random() * 1.5,
           trainNumber: `${lineKey.charAt(0).toUpperCase()}${String(i + 3).padStart(2, '0')}`,
           nextStation: ''
@@ -184,7 +199,7 @@ const MumbaiLocal = () => {
         setTrains(prevTrains => 
           prevTrains.map(train => {
             let newPosition = train.position;
-            const maxPosition = train.line === 'central' ? 2900 : train.line === 'harbour' ? 2500 : 2800;
+            const maxPosition = train.line === 'central' ? 3080 : train.line === 'harbour' ? 2080 : 2400;
             
             if (train.direction === 'up') {
               newPosition += train.speed;
@@ -236,10 +251,6 @@ const MumbaiLocal = () => {
 
   // Line Component with dual tracks and proper junction routing
   const LineComponent = ({ lineKey, line }) => {
-    const junctionPoints = junctionStations.filter(junction => 
-      junction.connectedLines.some(conn => conn.line === lineKey)
-    );
-
     return (
       <g key={lineKey}>
         {/* Dual track lines with junction routing */}
@@ -464,7 +475,7 @@ const MumbaiLocal = () => {
           <line
             x1={150}
             y1={line.yOffset}
-            x2={lineKey === 'central' ? 2920 : lineKey === 'harbour' ? 2520 : 2820}
+            x2={lineKey === 'central' ? 3100 : lineKey === 'harbour' ? 2100 : 2420}
             y2={line.yOffset}
             stroke="#9ca3af"
             strokeWidth="1"
@@ -526,7 +537,6 @@ const MumbaiLocal = () => {
             
             if (nearJunction) {
               // Route train through junction
-              const junctionConnection = nearJunction.connectedLines.find(conn => conn.line === lineKey);
               if (trainX >= nearJunction.x - 50 && trainX <= nearJunction.x + 50) {
                 // Train is in junction area - interpolate position
                 const progress = (trainX - (nearJunction.x - 50)) / 100;
@@ -771,7 +781,7 @@ const MumbaiLocal = () => {
       {/* Main Track Display */}
       <div className="flex-1 overflow-auto bg-gray-50 p-6">
         <div className="min-w-max">
-          <svg width="3100" height="650" className="bg-white rounded-lg shadow-lg border">
+          <svg width="3200" height="650" className="bg-white rounded-lg shadow-lg border">
             <defs>
               <pattern id="grid" width="100" height="100" patternUnits="userSpaceOnUse">
                 <path d="M 100 0 L 0 0 0 100" fill="none" stroke="#f3f4f6" strokeWidth="1"/>

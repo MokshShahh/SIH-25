@@ -41,9 +41,12 @@
   },
   {
     "tid": "T1001",
-    "origin": "DKRD",
+    "origin": "CSMT",
     "dest": "PNVL",
     "route_blocks": [
+      "CSMT-MSD",
+      "MSD-SNRD",
+      "SNRD-DKRD",
       "DKRD-RRD",
       "RRD-CTGN",
       "CTGN-SVE",
@@ -67,13 +70,13 @@
       "KNDS-PNVL"
     ],
     "sched_departure_s": 21900,
-    "sched_arrival_s": 28200,
-    "priority": 8,
-    "type": "Express",
+    "sched_arrival_s": 29100,
+    "priority": 4,
+    "type": "Local",
     "line": "HARBOUR",
     "dwell_rules": {
-      "major_station": 120,
-      "regular_station": 0
+      "major_station": 60,
+      "regular_station": 30
     }
   },
   {
@@ -119,7 +122,7 @@
   {
     "tid": "T1003",
     "origin": "CSMT",
-    "dest": "KHAG",
+    "dest": "PNVL",
     "route_blocks": [
       "CSMT-MSD",
       "MSD-SNRD",
@@ -141,129 +144,13 @@
       "JNJ-NEU",
       "NEU-SWDV",
       "SWDV-BEPR",
-      "BEPR-KHAG"
+      "BEPR-KHAG",
+      "KHAG-MANR",
+      "MANR-KNDS",
+      "KNDS-PNVL"
     ],
     "sched_departure_s": 22500,
-    "sched_arrival_s": 28800,
-    "priority": 5,
-    "type": "MEMU",
-    "line": "HARBOUR",
-    "dwell_rules": {
-      "major_station": 90,
-      "regular_station": 45
-    }
-  },
-  {
-    "tid": "T1004",
-    "origin": "CSMT",
-    "dest": "PNVL",
-    "route_blocks": [
-      "CSMT-MSD",
-      "MSD-SNRD",
-      "SNRD-DKRD",
-      "DKRD-RRD",
-      "RRD-CTGN",
-      "CTGN-SVE",
-      "SVE-VDLR",
-      "VDLR-GTBN",
-      "GTBN-CHF",
-      "CHF-CLA",
-      "CLA-TKNG",
-      "TKNG-CMBR",
-      "CMBR-GV",
-      "GV-MNKD",
-      "MNKD-VSH",
-      "VSH-SNCR",
-      "SNCR-JNJ",
-      "JNJ-NEU",
-      "NEU-SWDV",
-      "SWDV-BEPR",
-      "BEPR-KHAG",
-      "KHAG-MANR",
-      "MANR-KNDS",
-      "KNDS-PNVL"
-    ],
-    "sched_departure_s": 22800,
-    "sched_arrival_s": 30000,
-    "priority": 4,
-    "type": "Local",
-    "line": "HARBOUR",
-    "dwell_rules": {
-      "major_station": 60,
-      "regular_station": 30
-    }
-  },
-  {
-    "tid": "T1005",
-    "origin": "CSMT",
-    "dest": "KNDS",
-    "route_blocks": [
-      "CSMT-MSD",
-      "MSD-SNRD",
-      "SNRD-DKRD",
-      "DKRD-RRD",
-      "RRD-CTGN",
-      "CTGN-SVE",
-      "SVE-VDLR",
-      "VDLR-GTBN",
-      "GTBN-CHF",
-      "CHF-CLA",
-      "CLA-TKNG",
-      "TKNG-CMBR",
-      "CMBR-GV",
-      "GV-MNKD",
-      "MNKD-VSH",
-      "VSH-SNCR",
-      "SNCR-JNJ",
-      "JNJ-NEU",
-      "NEU-SWDV",
-      "SWDV-BEPR",
-      "BEPR-KHAG",
-      "KHAG-MANR",
-      "MANR-KNDS"
-    ],
-    "sched_departure_s": 23100,
-    "sched_arrival_s": 30000,
-    "priority": 8,
-    "type": "Express",
-    "line": "HARBOUR",
-    "dwell_rules": {
-      "major_station": 120,
-      "regular_station": 0
-    }
-  },
-  {
-    "tid": "T1006",
-    "origin": "CSMT",
-    "dest": "PNVL",
-    "route_blocks": [
-      "CSMT-MSD",
-      "MSD-SNRD",
-      "SNRD-DKRD",
-      "DKRD-RRD",
-      "RRD-CTGN",
-      "CTGN-SVE",
-      "SVE-VDLR",
-      "VDLR-GTBN",
-      "GTBN-CHF",
-      "CHF-CLA",
-      "CLA-TKNG",
-      "TKNG-CMBR",
-      "CMBR-GV",
-      "GV-MNKD",
-      "MNKD-VSH",
-      "VSH-SNCR",
-      "SNCR-JNJ",
-      "JNJ-NEU",
-      "NEU-SWDV",
-      "SWDV-BEPR",
-      "BEPR-KHAG",
-      "KHAG-MANR",
-      "MANR-KNDS",
-      "KNDS-PNVL"
-    ],
-    "sched_departure_s": 23400,
-    "sched_arrival_s": 30600,
+    "sched_arrival_s": 29700,
     "priority": 6,
     "type": "Fast",
     "line": "HARBOUR",
@@ -273,10 +160,45 @@
     }
   },
   {
-    "tid": "T1007",
-    "origin": "DKRD",
-    "dest": "MANR",
+    "tid": "T1004",
+    "origin": "RRD",
+    "dest": "BEPR",
     "route_blocks": [
+      "RRD-CTGN",
+      "CTGN-SVE",
+      "SVE-VDLR",
+      "VDLR-GTBN",
+      "GTBN-CHF",
+      "CHF-CLA",
+      "CLA-TKNG",
+      "TKNG-CMBR",
+      "CMBR-GV",
+      "GV-MNKD",
+      "MNKD-VSH",
+      "VSH-SNCR",
+      "SNCR-JNJ",
+      "JNJ-NEU",
+      "NEU-SWDV",
+      "SWDV-BEPR"
+    ],
+    "sched_departure_s": 22800,
+    "sched_arrival_s": 27600,
+    "priority": 8,
+    "type": "Express",
+    "line": "HARBOUR",
+    "dwell_rules": {
+      "major_station": 120,
+      "regular_station": 0
+    }
+  },
+  {
+    "tid": "T1005",
+    "origin": "CSMT",
+    "dest": "PNVL",
+    "route_blocks": [
+      "CSMT-MSD",
+      "MSD-SNRD",
+      "SNRD-DKRD",
       "DKRD-RRD",
       "RRD-CTGN",
       "CTGN-SVE",
@@ -295,16 +217,91 @@
       "NEU-SWDV",
       "SWDV-BEPR",
       "BEPR-KHAG",
-      "KHAG-MANR"
+      "KHAG-MANR",
+      "MANR-KNDS",
+      "KNDS-PNVL"
     ],
-    "sched_departure_s": 23700,
-    "sched_arrival_s": 29400,
+    "sched_departure_s": 23100,
+    "sched_arrival_s": 30300,
+    "priority": 4,
+    "type": "Local",
+    "line": "HARBOUR",
+    "dwell_rules": {
+      "major_station": 60,
+      "regular_station": 30
+    }
+  },
+  {
+    "tid": "T1006",
+    "origin": "DKRD",
+    "dest": "BEPR",
+    "route_blocks": [
+      "DKRD-RRD",
+      "RRD-CTGN",
+      "CTGN-SVE",
+      "SVE-VDLR",
+      "VDLR-GTBN",
+      "GTBN-CHF",
+      "CHF-CLA",
+      "CLA-TKNG",
+      "TKNG-CMBR",
+      "CMBR-GV",
+      "GV-MNKD",
+      "MNKD-VSH",
+      "VSH-SNCR",
+      "SNCR-JNJ",
+      "JNJ-NEU",
+      "NEU-SWDV",
+      "SWDV-BEPR"
+    ],
+    "sched_departure_s": 23400,
+    "sched_arrival_s": 28500,
     "priority": 5,
     "type": "MEMU",
     "line": "HARBOUR",
     "dwell_rules": {
       "major_station": 90,
       "regular_station": 45
+    }
+  },
+  {
+    "tid": "T1007",
+    "origin": "CSMT",
+    "dest": "PNVL",
+    "route_blocks": [
+      "CSMT-MSD",
+      "MSD-SNRD",
+      "SNRD-DKRD",
+      "DKRD-RRD",
+      "RRD-CTGN",
+      "CTGN-SVE",
+      "SVE-VDLR",
+      "VDLR-GTBN",
+      "GTBN-CHF",
+      "CHF-CLA",
+      "CLA-TKNG",
+      "TKNG-CMBR",
+      "CMBR-GV",
+      "GV-MNKD",
+      "MNKD-VSH",
+      "VSH-SNCR",
+      "SNCR-JNJ",
+      "JNJ-NEU",
+      "NEU-SWDV",
+      "SWDV-BEPR",
+      "BEPR-KHAG",
+      "KHAG-MANR",
+      "MANR-KNDS",
+      "KNDS-PNVL"
+    ],
+    "sched_departure_s": 23700,
+    "sched_arrival_s": 30900,
+    "priority": 6,
+    "type": "Fast",
+    "line": "HARBOUR",
+    "dwell_rules": {
+      "major_station": 45,
+      "regular_station": 20
     }
   },
   {
@@ -350,7 +347,7 @@
   {
     "tid": "T1009",
     "origin": "CSMT",
-    "dest": "KNDS",
+    "dest": "PNVL",
     "route_blocks": [
       "CSMT-MSD",
       "MSD-SNRD",
@@ -374,16 +371,17 @@
       "SWDV-BEPR",
       "BEPR-KHAG",
       "KHAG-MANR",
-      "MANR-KNDS"
+      "MANR-KNDS",
+      "KNDS-PNVL"
     ],
     "sched_departure_s": 24300,
-    "sched_arrival_s": 31200,
-    "priority": 8,
-    "type": "Express",
+    "sched_arrival_s": 31500,
+    "priority": 6,
+    "type": "Fast",
     "line": "HARBOUR",
     "dwell_rules": {
-      "major_station": 120,
-      "regular_station": 0
+      "major_station": 45,
+      "regular_station": 20
     }
   },
   {
@@ -428,10 +426,9 @@
   },
   {
     "tid": "T1011",
-    "origin": "CSMT",
-    "dest": "PNVL",
+    "origin": "MSD",
+    "dest": "BEPR",
     "route_blocks": [
-      "CSMT-MSD",
       "MSD-SNRD",
       "SNRD-DKRD",
       "DKRD-RRD",
@@ -450,20 +447,16 @@
       "SNCR-JNJ",
       "JNJ-NEU",
       "NEU-SWDV",
-      "SWDV-BEPR",
-      "BEPR-KHAG",
-      "KHAG-MANR",
-      "MANR-KNDS",
-      "KNDS-PNVL"
+      "SWDV-BEPR"
     ],
     "sched_departure_s": 24900,
-    "sched_arrival_s": 32100,
-    "priority": 4,
-    "type": "Local",
+    "sched_arrival_s": 30600,
+    "priority": 5,
+    "type": "MEMU",
     "line": "HARBOUR",
     "dwell_rules": {
-      "major_station": 60,
-      "regular_station": 30
+      "major_station": 90,
+      "regular_station": 45
     }
   },
   {
@@ -498,19 +491,20 @@
     ],
     "sched_departure_s": 25200,
     "sched_arrival_s": 32400,
-    "priority": 6,
-    "type": "Fast",
+    "priority": 4,
+    "type": "Local",
     "line": "HARBOUR",
     "dwell_rules": {
-      "major_station": 45,
-      "regular_station": 20
+      "major_station": 60,
+      "regular_station": 30
     }
   },
   {
     "tid": "T1013",
-    "origin": "MSD",
-    "dest": "KNDS",
+    "origin": "CSMT",
+    "dest": "PNVL",
     "route_blocks": [
+      "CSMT-MSD",
       "MSD-SNRD",
       "SNRD-DKRD",
       "DKRD-RRD",
@@ -532,10 +526,49 @@
       "SWDV-BEPR",
       "BEPR-KHAG",
       "KHAG-MANR",
-      "MANR-KNDS"
+      "MANR-KNDS",
+      "KNDS-PNVL"
     ],
     "sched_departure_s": 25500,
-    "sched_arrival_s": 32100,
+    "sched_arrival_s": 32700,
+    "priority": 6,
+    "type": "Fast",
+    "line": "HARBOUR",
+    "dwell_rules": {
+      "major_station": 45,
+      "regular_station": 20
+    }
+  },
+  {
+    "tid": "T1014",
+    "origin": "CSMT",
+    "dest": "MANR",
+    "route_blocks": [
+      "CSMT-MSD",
+      "MSD-SNRD",
+      "SNRD-DKRD",
+      "DKRD-RRD",
+      "RRD-CTGN",
+      "CTGN-SVE",
+      "SVE-VDLR",
+      "VDLR-GTBN",
+      "GTBN-CHF",
+      "CHF-CLA",
+      "CLA-TKNG",
+      "TKNG-CMBR",
+      "CMBR-GV",
+      "GV-MNKD",
+      "MNKD-VSH",
+      "VSH-SNCR",
+      "SNCR-JNJ",
+      "JNJ-NEU",
+      "NEU-SWDV",
+      "SWDV-BEPR",
+      "BEPR-KHAG",
+      "KHAG-MANR"
+    ],
+    "sched_departure_s": 25800,
+    "sched_arrival_s": 32400,
     "priority": 5,
     "type": "MEMU",
     "line": "HARBOUR",
@@ -545,49 +578,9 @@
     }
   },
   {
-    "tid": "T1014",
-    "origin": "CSMT",
-    "dest": "PNVL",
-    "route_blocks": [
-      "CSMT-MSD",
-      "MSD-SNRD",
-      "SNRD-DKRD",
-      "DKRD-RRD",
-      "RRD-CTGN",
-      "CTGN-SVE",
-      "SVE-VDLR",
-      "VDLR-GTBN",
-      "GTBN-CHF",
-      "CHF-CLA",
-      "CLA-TKNG",
-      "TKNG-CMBR",
-      "CMBR-GV",
-      "GV-MNKD",
-      "MNKD-VSH",
-      "VSH-SNCR",
-      "SNCR-JNJ",
-      "JNJ-NEU",
-      "NEU-SWDV",
-      "SWDV-BEPR",
-      "BEPR-KHAG",
-      "KHAG-MANR",
-      "MANR-KNDS",
-      "KNDS-PNVL"
-    ],
-    "sched_departure_s": 25800,
-    "sched_arrival_s": 33000,
-    "priority": 6,
-    "type": "Fast",
-    "line": "HARBOUR",
-    "dwell_rules": {
-      "major_station": 45,
-      "regular_station": 20
-    }
-  },
-  {
     "tid": "T1015",
     "origin": "CSMT",
-    "dest": "PNVL",
+    "dest": "MANR",
     "route_blocks": [
       "CSMT-MSD",
       "MSD-SNRD",
@@ -610,18 +603,16 @@
       "NEU-SWDV",
       "SWDV-BEPR",
       "BEPR-KHAG",
-      "KHAG-MANR",
-      "MANR-KNDS",
-      "KNDS-PNVL"
+      "KHAG-MANR"
     ],
     "sched_departure_s": 26100,
-    "sched_arrival_s": 33300,
-    "priority": 6,
-    "type": "Fast",
+    "sched_arrival_s": 32700,
+    "priority": 8,
+    "type": "Express",
     "line": "HARBOUR",
     "dwell_rules": {
-      "major_station": 45,
-      "regular_station": 20
+      "major_station": 120,
+      "regular_station": 0
     }
   },
   {
@@ -656,12 +647,12 @@
     ],
     "sched_departure_s": 26400,
     "sched_arrival_s": 33600,
-    "priority": 6,
-    "type": "Fast",
+    "priority": 4,
+    "type": "Local",
     "line": "HARBOUR",
     "dwell_rules": {
-      "major_station": 45,
-      "regular_station": 20
+      "major_station": 60,
+      "regular_station": 30
     }
   },
   {
@@ -696,12 +687,12 @@
     ],
     "sched_departure_s": 26700,
     "sched_arrival_s": 33900,
-    "priority": 6,
-    "type": "Fast",
+    "priority": 4,
+    "type": "Local",
     "line": "HARBOUR",
     "dwell_rules": {
-      "major_station": 45,
-      "regular_station": 20
+      "major_station": 60,
+      "regular_station": 30
     }
   },
   {
@@ -746,9 +737,13 @@
   },
   {
     "tid": "T1019",
-    "origin": "RRD",
+    "origin": "CSMT",
     "dest": "PNVL",
     "route_blocks": [
+      "CSMT-MSD",
+      "MSD-SNRD",
+      "SNRD-DKRD",
+      "DKRD-RRD",
       "RRD-CTGN",
       "CTGN-SVE",
       "SVE-VDLR",
@@ -771,61 +766,20 @@
       "KNDS-PNVL"
     ],
     "sched_departure_s": 27300,
-    "sched_arrival_s": 33300,
-    "priority": 5,
-    "type": "MEMU",
+    "sched_arrival_s": 34500,
+    "priority": 6,
+    "type": "Fast",
     "line": "HARBOUR",
     "dwell_rules": {
-      "major_station": 90,
-      "regular_station": 45
+      "major_station": 45,
+      "regular_station": 20
     }
   },
   {
     "tid": "T1020",
-    "origin": "CSMT",
-    "dest": "PNVL",
-    "route_blocks": [
-      "CSMT-MSD",
-      "MSD-SNRD",
-      "SNRD-DKRD",
-      "DKRD-RRD",
-      "RRD-CTGN",
-      "CTGN-SVE",
-      "SVE-VDLR",
-      "VDLR-GTBN",
-      "GTBN-CHF",
-      "CHF-CLA",
-      "CLA-TKNG",
-      "TKNG-CMBR",
-      "CMBR-GV",
-      "GV-MNKD",
-      "MNKD-VSH",
-      "VSH-SNCR",
-      "SNCR-JNJ",
-      "JNJ-NEU",
-      "NEU-SWDV",
-      "SWDV-BEPR",
-      "BEPR-KHAG",
-      "KHAG-MANR",
-      "MANR-KNDS",
-      "KNDS-PNVL"
-    ],
-    "sched_departure_s": 27600,
-    "sched_arrival_s": 34800,
-    "priority": 4,
-    "type": "Local",
-    "line": "HARBOUR",
-    "dwell_rules": {
-      "major_station": 60,
-      "regular_station": 30
-    }
-  },
-  {
-    "tid": "T1021",
-    "origin": "CSMT",
+    "origin": "MSD",
     "dest": "MANR",
     "route_blocks": [
-      "CSMT-MSD",
       "MSD-SNRD",
       "SNRD-DKRD",
       "DKRD-RRD",
@@ -848,8 +802,8 @@
       "BEPR-KHAG",
       "KHAG-MANR"
     ],
-    "sched_departure_s": 27900,
-    "sched_arrival_s": 34500,
+    "sched_departure_s": 27600,
+    "sched_arrival_s": 33900,
     "priority": 8,
     "type": "Express",
     "line": "HARBOUR",
@@ -859,12 +813,10 @@
     }
   },
   {
-    "tid": "T1022",
-    "origin": "CSMT",
+    "tid": "T1021",
+    "origin": "SNRD",
     "dest": "PNVL",
     "route_blocks": [
-      "CSMT-MSD",
-      "MSD-SNRD",
       "SNRD-DKRD",
       "DKRD-RRD",
       "RRD-CTGN",
@@ -888,14 +840,49 @@
       "MANR-KNDS",
       "KNDS-PNVL"
     ],
-    "sched_departure_s": 28200,
-    "sched_arrival_s": 35400,
-    "priority": 6,
-    "type": "Fast",
+    "sched_departure_s": 27900,
+    "sched_arrival_s": 34500,
+    "priority": 5,
+    "type": "MEMU",
     "line": "HARBOUR",
     "dwell_rules": {
-      "major_station": 45,
-      "regular_station": 20
+      "major_station": 90,
+      "regular_station": 45
+    }
+  },
+  {
+    "tid": "T1022",
+    "origin": "SNRD",
+    "dest": "KHAG",
+    "route_blocks": [
+      "SNRD-DKRD",
+      "DKRD-RRD",
+      "RRD-CTGN",
+      "CTGN-SVE",
+      "SVE-VDLR",
+      "VDLR-GTBN",
+      "GTBN-CHF",
+      "CHF-CLA",
+      "CLA-TKNG",
+      "TKNG-CMBR",
+      "CMBR-GV",
+      "GV-MNKD",
+      "MNKD-VSH",
+      "VSH-SNCR",
+      "SNCR-JNJ",
+      "JNJ-NEU",
+      "NEU-SWDV",
+      "SWDV-BEPR",
+      "BEPR-KHAG"
+    ],
+    "sched_departure_s": 28200,
+    "sched_arrival_s": 33900,
+    "priority": 5,
+    "type": "MEMU",
+    "line": "HARBOUR",
+    "dwell_rules": {
+      "major_station": 90,
+      "regular_station": 45
     }
   },
   {
@@ -930,12 +917,12 @@
     ],
     "sched_departure_s": 28500,
     "sched_arrival_s": 35700,
-    "priority": 4,
-    "type": "Local",
+    "priority": 6,
+    "type": "Fast",
     "line": "HARBOUR",
     "dwell_rules": {
-      "major_station": 60,
-      "regular_station": 30
+      "major_station": 45,
+      "regular_station": 20
     }
   },
   {
@@ -980,6 +967,155 @@
   },
   {
     "tid": "T1025",
+    "origin": "MSD",
+    "dest": "KHAG",
+    "route_blocks": [
+      "MSD-SNRD",
+      "SNRD-DKRD",
+      "DKRD-RRD",
+      "RRD-CTGN",
+      "CTGN-SVE",
+      "SVE-VDLR",
+      "VDLR-GTBN",
+      "GTBN-CHF",
+      "CHF-CLA",
+      "CLA-TKNG",
+      "TKNG-CMBR",
+      "CMBR-GV",
+      "GV-MNKD",
+      "MNKD-VSH",
+      "VSH-SNCR",
+      "SNCR-JNJ",
+      "JNJ-NEU",
+      "NEU-SWDV",
+      "SWDV-BEPR",
+      "BEPR-KHAG"
+    ],
+    "sched_departure_s": 29100,
+    "sched_arrival_s": 35100,
+    "priority": 8,
+    "type": "Express",
+    "line": "HARBOUR",
+    "dwell_rules": {
+      "major_station": 120,
+      "regular_station": 0
+    }
+  },
+  {
+    "tid": "T1026",
+    "origin": "MSD",
+    "dest": "PNVL",
+    "route_blocks": [
+      "MSD-SNRD",
+      "SNRD-DKRD",
+      "DKRD-RRD",
+      "RRD-CTGN",
+      "CTGN-SVE",
+      "SVE-VDLR",
+      "VDLR-GTBN",
+      "GTBN-CHF",
+      "CHF-CLA",
+      "CLA-TKNG",
+      "TKNG-CMBR",
+      "CMBR-GV",
+      "GV-MNKD",
+      "MNKD-VSH",
+      "VSH-SNCR",
+      "SNCR-JNJ",
+      "JNJ-NEU",
+      "NEU-SWDV",
+      "SWDV-BEPR",
+      "BEPR-KHAG",
+      "KHAG-MANR",
+      "MANR-KNDS",
+      "KNDS-PNVL"
+    ],
+    "sched_departure_s": 29400,
+    "sched_arrival_s": 36300,
+    "priority": 5,
+    "type": "MEMU",
+    "line": "HARBOUR",
+    "dwell_rules": {
+      "major_station": 90,
+      "regular_station": 45
+    }
+  },
+  {
+    "tid": "T1027",
+    "origin": "DKRD",
+    "dest": "PNVL",
+    "route_blocks": [
+      "DKRD-RRD",
+      "RRD-CTGN",
+      "CTGN-SVE",
+      "SVE-VDLR",
+      "VDLR-GTBN",
+      "GTBN-CHF",
+      "CHF-CLA",
+      "CLA-TKNG",
+      "TKNG-CMBR",
+      "CMBR-GV",
+      "GV-MNKD",
+      "MNKD-VSH",
+      "VSH-SNCR",
+      "SNCR-JNJ",
+      "JNJ-NEU",
+      "NEU-SWDV",
+      "SWDV-BEPR",
+      "BEPR-KHAG",
+      "KHAG-MANR",
+      "MANR-KNDS",
+      "KNDS-PNVL"
+    ],
+    "sched_departure_s": 29700,
+    "sched_arrival_s": 36000,
+    "priority": 5,
+    "type": "MEMU",
+    "line": "HARBOUR",
+    "dwell_rules": {
+      "major_station": 90,
+      "regular_station": 45
+    }
+  },
+  {
+    "tid": "T1028",
+    "origin": "SNRD",
+    "dest": "KNDS",
+    "route_blocks": [
+      "SNRD-DKRD",
+      "DKRD-RRD",
+      "RRD-CTGN",
+      "CTGN-SVE",
+      "SVE-VDLR",
+      "VDLR-GTBN",
+      "GTBN-CHF",
+      "CHF-CLA",
+      "CLA-TKNG",
+      "TKNG-CMBR",
+      "CMBR-GV",
+      "GV-MNKD",
+      "MNKD-VSH",
+      "VSH-SNCR",
+      "SNCR-JNJ",
+      "JNJ-NEU",
+      "NEU-SWDV",
+      "SWDV-BEPR",
+      "BEPR-KHAG",
+      "KHAG-MANR",
+      "MANR-KNDS"
+    ],
+    "sched_departure_s": 30000,
+    "sched_arrival_s": 36300,
+    "priority": 5,
+    "type": "MEMU",
+    "line": "HARBOUR",
+    "dwell_rules": {
+      "major_station": 90,
+      "regular_station": 45
+    }
+  },
+  {
+    "tid": "T1029",
     "origin": "CSMT",
     "dest": "PNVL",
     "route_blocks": [
@@ -1008,152 +1144,14 @@
       "MANR-KNDS",
       "KNDS-PNVL"
     ],
-    "sched_departure_s": 29100,
-    "sched_arrival_s": 36300,
+    "sched_departure_s": 30300,
+    "sched_arrival_s": 37500,
     "priority": 6,
     "type": "Fast",
     "line": "HARBOUR",
     "dwell_rules": {
       "major_station": 45,
       "regular_station": 20
-    }
-  },
-  {
-    "tid": "T1026",
-    "origin": "DKRD",
-    "dest": "BEPR",
-    "route_blocks": [
-      "DKRD-RRD",
-      "RRD-CTGN",
-      "CTGN-SVE",
-      "SVE-VDLR",
-      "VDLR-GTBN",
-      "GTBN-CHF",
-      "CHF-CLA",
-      "CLA-TKNG",
-      "TKNG-CMBR",
-      "CMBR-GV",
-      "GV-MNKD",
-      "MNKD-VSH",
-      "VSH-SNCR",
-      "SNCR-JNJ",
-      "JNJ-NEU",
-      "NEU-SWDV",
-      "SWDV-BEPR"
-    ],
-    "sched_departure_s": 29400,
-    "sched_arrival_s": 34500,
-    "priority": 8,
-    "type": "Express",
-    "line": "HARBOUR",
-    "dwell_rules": {
-      "major_station": 120,
-      "regular_station": 0
-    }
-  },
-  {
-    "tid": "T1027",
-    "origin": "SNRD",
-    "dest": "MANR",
-    "route_blocks": [
-      "SNRD-DKRD",
-      "DKRD-RRD",
-      "RRD-CTGN",
-      "CTGN-SVE",
-      "SVE-VDLR",
-      "VDLR-GTBN",
-      "GTBN-CHF",
-      "CHF-CLA",
-      "CLA-TKNG",
-      "TKNG-CMBR",
-      "CMBR-GV",
-      "GV-MNKD",
-      "MNKD-VSH",
-      "VSH-SNCR",
-      "SNCR-JNJ",
-      "JNJ-NEU",
-      "NEU-SWDV",
-      "SWDV-BEPR",
-      "BEPR-KHAG",
-      "KHAG-MANR"
-    ],
-    "sched_departure_s": 29700,
-    "sched_arrival_s": 35700,
-    "priority": 5,
-    "type": "MEMU",
-    "line": "HARBOUR",
-    "dwell_rules": {
-      "major_station": 90,
-      "regular_station": 45
-    }
-  },
-  {
-    "tid": "T1028",
-    "origin": "DKRD",
-    "dest": "BEPR",
-    "route_blocks": [
-      "DKRD-RRD",
-      "RRD-CTGN",
-      "CTGN-SVE",
-      "SVE-VDLR",
-      "VDLR-GTBN",
-      "GTBN-CHF",
-      "CHF-CLA",
-      "CLA-TKNG",
-      "TKNG-CMBR",
-      "CMBR-GV",
-      "GV-MNKD",
-      "MNKD-VSH",
-      "VSH-SNCR",
-      "SNCR-JNJ",
-      "JNJ-NEU",
-      "NEU-SWDV",
-      "SWDV-BEPR"
-    ],
-    "sched_departure_s": 30000,
-    "sched_arrival_s": 35100,
-    "priority": 5,
-    "type": "MEMU",
-    "line": "HARBOUR",
-    "dwell_rules": {
-      "major_station": 90,
-      "regular_station": 45
-    }
-  },
-  {
-    "tid": "T1029",
-    "origin": "DKRD",
-    "dest": "KNDS",
-    "route_blocks": [
-      "DKRD-RRD",
-      "RRD-CTGN",
-      "CTGN-SVE",
-      "SVE-VDLR",
-      "VDLR-GTBN",
-      "GTBN-CHF",
-      "CHF-CLA",
-      "CLA-TKNG",
-      "TKNG-CMBR",
-      "CMBR-GV",
-      "GV-MNKD",
-      "MNKD-VSH",
-      "VSH-SNCR",
-      "SNCR-JNJ",
-      "JNJ-NEU",
-      "NEU-SWDV",
-      "SWDV-BEPR",
-      "BEPR-KHAG",
-      "KHAG-MANR",
-      "MANR-KNDS"
-    ],
-    "sched_departure_s": 30300,
-    "sched_arrival_s": 36300,
-    "priority": 8,
-    "type": "Express",
-    "line": "HARBOUR",
-    "dwell_rules": {
-      "major_station": 120,
-      "regular_station": 0
     }
   }
 ]

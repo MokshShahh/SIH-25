@@ -1,20 +1,17 @@
 [
   {
     "tid": "T1000",
-    "origin": "KYN",
-    "dest": "BVS",
+    "origin": "VLDI",
+    "dest": "SHLU",
     "route_blocks": [
-      "KYN-VLDI",
       "VLDI-ULNR",
       "ULNR-ABH",
       "ABH-BUD",
       "BUD-VGI",
-      "VGI-SHLU",
-      "SHLU-NRL",
-      "NRL-BVS"
+      "VGI-SHLU"
     ],
     "sched_departure_s": 21600,
-    "sched_arrival_s": 24000,
+    "sched_arrival_s": 23100,
     "priority": 8,
     "type": "Express",
     "line": "CENTRAL_KARJAT",
@@ -42,22 +39,24 @@
   },
   {
     "tid": "T1002",
-    "origin": "BUD",
-    "dest": "BVS",
+    "origin": "KYN",
+    "dest": "SHLU",
     "route_blocks": [
+      "KYN-VLDI",
+      "VLDI-ULNR",
+      "ULNR-ABH",
+      "ABH-BUD",
       "BUD-VGI",
-      "VGI-SHLU",
-      "SHLU-NRL",
-      "NRL-BVS"
+      "VGI-SHLU"
     ],
     "sched_departure_s": 22200,
-    "sched_arrival_s": 23400,
-    "priority": 8,
-    "type": "Express",
+    "sched_arrival_s": 24000,
+    "priority": 5,
+    "type": "MEMU",
     "line": "CENTRAL_KARJAT",
     "dwell_rules": {
-      "major_station": 120,
-      "regular_station": 0
+      "major_station": 90,
+      "regular_station": 45
     }
   },
   {
@@ -77,22 +76,19 @@
     ],
     "sched_departure_s": 22500,
     "sched_arrival_s": 25200,
-    "priority": 4,
-    "type": "Local",
+    "priority": 6,
+    "type": "Fast",
     "line": "CENTRAL_KARJAT",
     "dwell_rules": {
-      "major_station": 60,
-      "regular_station": 30
+      "major_station": 45,
+      "regular_station": 20
     }
   },
   {
     "tid": "T1004",
-    "origin": "KYN",
+    "origin": "ABH",
     "dest": "KJT",
     "route_blocks": [
-      "KYN-VLDI",
-      "VLDI-ULNR",
-      "ULNR-ABH",
       "ABH-BUD",
       "BUD-VGI",
       "VGI-SHLU",
@@ -101,17 +97,37 @@
       "BVS-KJT"
     ],
     "sched_departure_s": 22800,
-    "sched_arrival_s": 25500,
-    "priority": 4,
-    "type": "Local",
+    "sched_arrival_s": 24600,
+    "priority": 8,
+    "type": "Express",
     "line": "CENTRAL_KARJAT",
     "dwell_rules": {
-      "major_station": 60,
-      "regular_station": 30
+      "major_station": 120,
+      "regular_station": 0
     }
   },
   {
     "tid": "T1005",
+    "origin": "ULNR",
+    "dest": "SHLU",
+    "route_blocks": [
+      "ULNR-ABH",
+      "ABH-BUD",
+      "BUD-VGI",
+      "VGI-SHLU"
+    ],
+    "sched_departure_s": 23100,
+    "sched_arrival_s": 24300,
+    "priority": 8,
+    "type": "Express",
+    "line": "CENTRAL_KARJAT",
+    "dwell_rules": {
+      "major_station": 120,
+      "regular_station": 0
+    }
+  },
+  {
+    "tid": "T1006",
     "origin": "KYN",
     "dest": "KJT",
     "route_blocks": [
@@ -125,35 +141,14 @@
       "NRL-BVS",
       "BVS-KJT"
     ],
-    "sched_departure_s": 23100,
-    "sched_arrival_s": 25800,
-    "priority": 4,
-    "type": "Local",
-    "line": "CENTRAL_KARJAT",
-    "dwell_rules": {
-      "major_station": 60,
-      "regular_station": 30
-    }
-  },
-  {
-    "tid": "T1006",
-    "origin": "KYN",
-    "dest": "VGI",
-    "route_blocks": [
-      "KYN-VLDI",
-      "VLDI-ULNR",
-      "ULNR-ABH",
-      "ABH-BUD",
-      "BUD-VGI"
-    ],
     "sched_departure_s": 23400,
-    "sched_arrival_s": 24900,
-    "priority": 5,
-    "type": "MEMU",
+    "sched_arrival_s": 26100,
+    "priority": 6,
+    "type": "Fast",
     "line": "CENTRAL_KARJAT",
     "dwell_rules": {
-      "major_station": 90,
-      "regular_station": 45
+      "major_station": 45,
+      "regular_station": 20
     }
   },
   {
@@ -183,27 +178,23 @@
   },
   {
     "tid": "T1008",
-    "origin": "KYN",
-    "dest": "KJT",
+    "origin": "ABH",
+    "dest": "BVS",
     "route_blocks": [
-      "KYN-VLDI",
-      "VLDI-ULNR",
-      "ULNR-ABH",
       "ABH-BUD",
       "BUD-VGI",
       "VGI-SHLU",
       "SHLU-NRL",
-      "NRL-BVS",
-      "BVS-KJT"
+      "NRL-BVS"
     ],
     "sched_departure_s": 24000,
-    "sched_arrival_s": 26700,
-    "priority": 6,
-    "type": "Fast",
+    "sched_arrival_s": 25500,
+    "priority": 5,
+    "type": "MEMU",
     "line": "CENTRAL_KARJAT",
     "dwell_rules": {
-      "major_station": 45,
-      "regular_station": 20
+      "major_station": 90,
+      "regular_station": 45
     }
   },
   {
@@ -248,29 +239,33 @@
     ],
     "sched_departure_s": 24600,
     "sched_arrival_s": 27300,
-    "priority": 5,
-    "type": "MEMU",
+    "priority": 4,
+    "type": "Local",
     "line": "CENTRAL_KARJAT",
     "dwell_rules": {
-      "major_station": 90,
-      "regular_station": 45
+      "major_station": 60,
+      "regular_station": 30
     }
   },
   {
     "tid": "T1011",
     "origin": "BUD",
-    "dest": "VGI",
+    "dest": "KJT",
     "route_blocks": [
-      "BUD-VGI"
+      "BUD-VGI",
+      "VGI-SHLU",
+      "SHLU-NRL",
+      "NRL-BVS",
+      "BVS-KJT"
     ],
     "sched_departure_s": 24900,
-    "sched_arrival_s": 25200,
-    "priority": 5,
-    "type": "MEMU",
+    "sched_arrival_s": 26400,
+    "priority": 8,
+    "type": "Express",
     "line": "CENTRAL_KARJAT",
     "dwell_rules": {
-      "major_station": 90,
-      "regular_station": 45
+      "major_station": 120,
+      "regular_station": 0
     }
   },
   {
@@ -285,12 +280,12 @@
     ],
     "sched_departure_s": 25200,
     "sched_arrival_s": 26400,
-    "priority": 5,
-    "type": "MEMU",
+    "priority": 8,
+    "type": "Express",
     "line": "CENTRAL_KARJAT",
     "dwell_rules": {
-      "major_station": 90,
-      "regular_station": 45
+      "major_station": 120,
+      "regular_station": 0
     }
   },
   {
@@ -310,56 +305,6 @@
     ],
     "sched_departure_s": 25500,
     "sched_arrival_s": 28200,
-    "priority": 6,
-    "type": "Fast",
-    "line": "CENTRAL_KARJAT",
-    "dwell_rules": {
-      "major_station": 45,
-      "regular_station": 20
-    }
-  },
-  {
-    "tid": "T1014",
-    "origin": "KYN",
-    "dest": "KJT",
-    "route_blocks": [
-      "KYN-VLDI",
-      "VLDI-ULNR",
-      "ULNR-ABH",
-      "ABH-BUD",
-      "BUD-VGI",
-      "VGI-SHLU",
-      "SHLU-NRL",
-      "NRL-BVS",
-      "BVS-KJT"
-    ],
-    "sched_departure_s": 25800,
-    "sched_arrival_s": 28500,
-    "priority": 6,
-    "type": "Fast",
-    "line": "CENTRAL_KARJAT",
-    "dwell_rules": {
-      "major_station": 45,
-      "regular_station": 20
-    }
-  },
-  {
-    "tid": "T1015",
-    "origin": "KYN",
-    "dest": "KJT",
-    "route_blocks": [
-      "KYN-VLDI",
-      "VLDI-ULNR",
-      "ULNR-ABH",
-      "ABH-BUD",
-      "BUD-VGI",
-      "VGI-SHLU",
-      "SHLU-NRL",
-      "NRL-BVS",
-      "BVS-KJT"
-    ],
-    "sched_departure_s": 26100,
-    "sched_arrival_s": 28800,
     "priority": 4,
     "type": "Local",
     "line": "CENTRAL_KARJAT",
@@ -369,24 +314,68 @@
     }
   },
   {
-    "tid": "T1016",
+    "tid": "T1014",
     "origin": "VLDI",
-    "dest": "SHLU",
+    "dest": "VGI",
     "route_blocks": [
       "VLDI-ULNR",
       "ULNR-ABH",
       "ABH-BUD",
-      "BUD-VGI",
-      "VGI-SHLU"
+      "BUD-VGI"
     ],
-    "sched_departure_s": 26400,
-    "sched_arrival_s": 27900,
+    "sched_departure_s": 25800,
+    "sched_arrival_s": 27000,
     "priority": 8,
     "type": "Express",
     "line": "CENTRAL_KARJAT",
     "dwell_rules": {
       "major_station": 120,
       "regular_station": 0
+    }
+  },
+  {
+    "tid": "T1015",
+    "origin": "BUD",
+    "dest": "BVS",
+    "route_blocks": [
+      "BUD-VGI",
+      "VGI-SHLU",
+      "SHLU-NRL",
+      "NRL-BVS"
+    ],
+    "sched_departure_s": 26100,
+    "sched_arrival_s": 27300,
+    "priority": 5,
+    "type": "MEMU",
+    "line": "CENTRAL_KARJAT",
+    "dwell_rules": {
+      "major_station": 90,
+      "regular_station": 45
+    }
+  },
+  {
+    "tid": "T1016",
+    "origin": "KYN",
+    "dest": "KJT",
+    "route_blocks": [
+      "KYN-VLDI",
+      "VLDI-ULNR",
+      "ULNR-ABH",
+      "ABH-BUD",
+      "BUD-VGI",
+      "VGI-SHLU",
+      "SHLU-NRL",
+      "NRL-BVS",
+      "BVS-KJT"
+    ],
+    "sched_departure_s": 26400,
+    "sched_arrival_s": 29100,
+    "priority": 4,
+    "type": "Local",
+    "line": "CENTRAL_KARJAT",
+    "dwell_rules": {
+      "major_station": 60,
+      "regular_station": 30
     }
   },
   {
@@ -406,12 +395,12 @@
     ],
     "sched_departure_s": 26700,
     "sched_arrival_s": 29400,
-    "priority": 8,
-    "type": "Express",
+    "priority": 4,
+    "type": "Local",
     "line": "CENTRAL_KARJAT",
     "dwell_rules": {
-      "major_station": 120,
-      "regular_station": 0
+      "major_station": 60,
+      "regular_station": 30
     }
   },
   {
@@ -456,12 +445,12 @@
     ],
     "sched_departure_s": 27300,
     "sched_arrival_s": 30000,
-    "priority": 4,
-    "type": "Local",
+    "priority": 6,
+    "type": "Fast",
     "line": "CENTRAL_KARJAT",
     "dwell_rules": {
-      "major_station": 60,
-      "regular_station": 30
+      "major_station": 45,
+      "regular_station": 20
     }
   },
   {
@@ -506,70 +495,48 @@
     ],
     "sched_departure_s": 27900,
     "sched_arrival_s": 30600,
-    "priority": 4,
-    "type": "Local",
+    "priority": 6,
+    "type": "Fast",
     "line": "CENTRAL_KARJAT",
     "dwell_rules": {
-      "major_station": 60,
-      "regular_station": 30
+      "major_station": 45,
+      "regular_station": 20
     }
   },
   {
     "tid": "T1022",
-    "origin": "KYN",
-    "dest": "KJT",
+    "origin": "VLDI",
+    "dest": "SHLU",
     "route_blocks": [
-      "KYN-VLDI",
       "VLDI-ULNR",
       "ULNR-ABH",
       "ABH-BUD",
       "BUD-VGI",
-      "VGI-SHLU",
-      "SHLU-NRL",
-      "NRL-BVS",
-      "BVS-KJT"
+      "VGI-SHLU"
     ],
     "sched_departure_s": 28200,
-    "sched_arrival_s": 30900,
-    "priority": 4,
-    "type": "Local",
+    "sched_arrival_s": 29700,
+    "priority": 8,
+    "type": "Express",
     "line": "CENTRAL_KARJAT",
     "dwell_rules": {
-      "major_station": 60,
-      "regular_station": 30
+      "major_station": 120,
+      "regular_station": 0
     }
   },
   {
     "tid": "T1023",
-    "origin": "ULNR",
-    "dest": "VGI",
-    "route_blocks": [
-      "ULNR-ABH",
-      "ABH-BUD",
-      "BUD-VGI"
-    ],
-    "sched_departure_s": 28500,
-    "sched_arrival_s": 29400,
-    "priority": 5,
-    "type": "MEMU",
-    "line": "CENTRAL_KARJAT",
-    "dwell_rules": {
-      "major_station": 90,
-      "regular_station": 45
-    }
-  },
-  {
-    "tid": "T1024",
-    "origin": "ULNR",
+    "origin": "VLDI",
     "dest": "NRL",
     "route_blocks": [
+      "VLDI-ULNR",
       "ULNR-ABH",
       "ABH-BUD",
       "BUD-VGI",
       "VGI-SHLU",
       "SHLU-NRL"
     ],
-    "sched_departure_s": 28800,
+    "sched_departure_s": 28500,
     "sched_arrival_s": 30300,
     "priority": 8,
     "type": "Express",
@@ -580,7 +547,7 @@
     }
   },
   {
-    "tid": "T1025",
+    "tid": "T1024",
     "origin": "KYN",
     "dest": "KJT",
     "route_blocks": [
@@ -594,8 +561,8 @@
       "NRL-BVS",
       "BVS-KJT"
     ],
-    "sched_departure_s": 29100,
-    "sched_arrival_s": 31800,
+    "sched_departure_s": 28800,
+    "sched_arrival_s": 31500,
     "priority": 6,
     "type": "Fast",
     "line": "CENTRAL_KARJAT",
@@ -605,18 +572,42 @@
     }
   },
   {
+    "tid": "T1025",
+    "origin": "BUD",
+    "dest": "BVS",
+    "route_blocks": [
+      "BUD-VGI",
+      "VGI-SHLU",
+      "SHLU-NRL",
+      "NRL-BVS"
+    ],
+    "sched_departure_s": 29100,
+    "sched_arrival_s": 30300,
+    "priority": 5,
+    "type": "MEMU",
+    "line": "CENTRAL_KARJAT",
+    "dwell_rules": {
+      "major_station": 90,
+      "regular_station": 45
+    }
+  },
+  {
     "tid": "T1026",
     "origin": "KYN",
-    "dest": "VGI",
+    "dest": "KJT",
     "route_blocks": [
       "KYN-VLDI",
       "VLDI-ULNR",
       "ULNR-ABH",
       "ABH-BUD",
-      "BUD-VGI"
+      "BUD-VGI",
+      "VGI-SHLU",
+      "SHLU-NRL",
+      "NRL-BVS",
+      "BVS-KJT"
     ],
     "sched_departure_s": 29400,
-    "sched_arrival_s": 30900,
+    "sched_arrival_s": 32100,
     "priority": 5,
     "type": "MEMU",
     "line": "CENTRAL_KARJAT",
@@ -628,7 +619,7 @@
   {
     "tid": "T1027",
     "origin": "KYN",
-    "dest": "NRL",
+    "dest": "KJT",
     "route_blocks": [
       "KYN-VLDI",
       "VLDI-ULNR",
@@ -636,29 +627,12 @@
       "ABH-BUD",
       "BUD-VGI",
       "VGI-SHLU",
-      "SHLU-NRL"
+      "SHLU-NRL",
+      "NRL-BVS",
+      "BVS-KJT"
     ],
     "sched_departure_s": 29700,
-    "sched_arrival_s": 31800,
-    "priority": 8,
-    "type": "Express",
-    "line": "CENTRAL_KARJAT",
-    "dwell_rules": {
-      "major_station": 120,
-      "regular_station": 0
-    }
-  },
-  {
-    "tid": "T1028",
-    "origin": "ULNR",
-    "dest": "VGI",
-    "route_blocks": [
-      "ULNR-ABH",
-      "ABH-BUD",
-      "BUD-VGI"
-    ],
-    "sched_departure_s": 30000,
-    "sched_arrival_s": 30900,
+    "sched_arrival_s": 32400,
     "priority": 5,
     "type": "MEMU",
     "line": "CENTRAL_KARJAT",
@@ -668,7 +642,7 @@
     }
   },
   {
-    "tid": "T1029",
+    "tid": "T1028",
     "origin": "KYN",
     "dest": "KJT",
     "route_blocks": [
@@ -682,14 +656,36 @@
       "NRL-BVS",
       "BVS-KJT"
     ],
-    "sched_departure_s": 30300,
-    "sched_arrival_s": 33000,
-    "priority": 4,
-    "type": "Local",
+    "sched_departure_s": 30000,
+    "sched_arrival_s": 32700,
+    "priority": 6,
+    "type": "Fast",
     "line": "CENTRAL_KARJAT",
     "dwell_rules": {
-      "major_station": 60,
-      "regular_station": 30
+      "major_station": 45,
+      "regular_station": 20
+    }
+  },
+  {
+    "tid": "T1029",
+    "origin": "ULNR",
+    "dest": "BVS",
+    "route_blocks": [
+      "ULNR-ABH",
+      "ABH-BUD",
+      "BUD-VGI",
+      "VGI-SHLU",
+      "SHLU-NRL",
+      "NRL-BVS"
+    ],
+    "sched_departure_s": 30300,
+    "sched_arrival_s": 32100,
+    "priority": 8,
+    "type": "Express",
+    "line": "CENTRAL_KARJAT",
+    "dwell_rules": {
+      "major_station": 120,
+      "regular_station": 0
     }
   }
 ]
