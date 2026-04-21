@@ -7,6 +7,7 @@ from datetime import datetime, timedelta
 from neo4j import GraphDatabase
 from dotenv import load_dotenv
 from contextlib import asynccontextmanager
+<<<<<<< HEAD
 from MILP import optimize_train_schedule_milp
 
 origins = [
@@ -18,6 +19,24 @@ load_dotenv()
 uri = os.getenv("NEO4J_URI")
 user = os.getenv("DB_USERNAME") 
 password = os.getenv("DB_PASSWORD")
+=======
+from fastapi.middleware.cors import CORSMiddleware
+
+load_dotenv()
+
+app = FastAPI()
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # Allows all origins
+    allow_credentials=True,
+    allow_methods=["*"],  # Allows all methods (GET, POST, PUT, DELETE, etc.)
+    allow_headers=["*"],  # Allows all headers
+)
+
+uri = os.getenv("AURA_URI")
+user = os.getenv("AURA_USER")
+password = os.getenv("AURA_PASS")
+>>>>>>> 3302f85 (migrated to larger db)
 driver = GraphDatabase.driver(uri, auth=(user, password))
 
 WS_CONNECTIONS: List[WebSocket] = []
@@ -106,20 +125,50 @@ async def broadcast(msg: dict):
             except:
                 pass
 
+<<<<<<< Updated upstream
+=======
+@app.get("/stations")
+def get_stations():
+    query = """
+<<<<<<< HEAD
+    MATCH (s:Station)
+    RETURN coalesce(s.code, "") AS code, coalesce(s.name, "Unknown") AS name
+    ORDER BY code
+    """
+    return run_cypher(query)
+>>>>>>> Stashed changes
 
 #sends stations to frontend for map visualization
 @app.get("/stations/map")
 def get_map_data():
     query = """
     MATCH p=(s1:Station)-[:TRACK]->(s2:Station) 
+<<<<<<< Updated upstream
     RETURN p LIMIT 100
+=======
+    RETURN p LIMIT 25
+=======
+    MATCH p=()-[:TRACK]->() RETURN p LIMIT 25;
+>>>>>>> 3302f85 (migrated to larger db)
+>>>>>>> Stashed changes
     """
     with driver.session() as session:
         result = session.run(query)
         data = []
         for record in result:
+<<<<<<< HEAD
             res = record.data()
+<<<<<<< Updated upstream
             data.append(res)
+=======
+            data.append([res["p"][0]["name"], res["p"][2]["name"]])
+=======
+            res=record.data()
+            data.append(res)
+        print(data)
+        return data
+>>>>>>> 3302f85 (migrated to larger db)
+>>>>>>> Stashed changes
     
     if not data:
         return {"error": "No records found. Please ensure the database is populated."}
